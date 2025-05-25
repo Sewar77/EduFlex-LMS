@@ -24,4 +24,5 @@ export const CourseSchema = Joi.object({
   is_published: Joi.boolean().default(false),
   created_at: Joi.date().default(() => new Date()),
   updated_at: Joi.date().default(() => new Date()),
+  instructor_id: Joi.number().integer().required(), // for now
 });
