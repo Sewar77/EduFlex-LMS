@@ -1,9 +1,9 @@
 import {
-  createCourse,
   createUser,
   updateUser,
   getAllUsers,
   deleteUser,
+  getUserById,
 } from "../models/user.model.js";
 
 //users
@@ -37,12 +37,14 @@ export async function deleteUserController(req, res) {
   try {
     const id = req.params.id;
     if (id) {
-      await deleteUser(id);
+      const result = await deleteUser(id);
+      res.status(200).json(result);
     } else {
-      res.send("There is No Id");
+      res.status(404).json({ message: "User not found" });
     }
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Internal server error" });
     throw err;
   }
 }
@@ -51,7 +53,8 @@ export async function getAllUsersController(req, res) {
   try {
     const allUsers = await getAllUsers();
     //res.render("home", { users: allUsers });
-    res.send("home, all users!")
+    res.status(200).json(allUsers);
+    //res.send("home, all users!");
   } catch (err) {
     console.error(err);
     throw err;
@@ -59,13 +62,13 @@ export async function getAllUsersController(req, res) {
 }
 
 //5- get user by id
-//courses
-export async function createCourseController(req, res) {
+export async function getUserByIdController(req, res) {
   try {
-    const courseInfo = { ...req.body };
-    await createCourse(courseInfo);
-    //res.render("createCourse.ejs"); //not created yet.
-    res.send("created course. ")
+    const id = req.params.id;
+    const userById = await getUserById(id);
+    //res.render("home", { users: allUsers });
+    res.status(200).json(userById);
+    //res.send("home, all users!");
   } catch (err) {
     console.error(err);
     throw err;
