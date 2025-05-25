@@ -1,22 +1,42 @@
 import {
-  createCourseController,
   createUserController,
-  updateUserController
+  updateUserController,
+  deleteUserController,
+  getAllUsersController,
+  getUserByIdController,
 } from "../controllers/user.controller.js";
+import {
+  createCourseController,
+  updateCourseController,
+  deleteCourseController,
+  getAllCoursesController,
+  getCourseByIdController,
+} from "../controllers/courses.controller.js";
 import express from "express";
 import { validateBody } from "../middleware/validateBody.js";
-import { CourseSchema } from "../validation/courseSchema.js";
-import { UserSchema } from "../validation/userSchema.js";
+import { CourseSchema } from "../validation/course.Schema.js";
+import { UserSchema } from "../validation/user.Schema.js";
 
 const router = express.Router();
 
-// router.get("/", (req, res) => {
-//   res.send("home.ejs");
-// });
+//home
+router.get("/", (req, res) => {
+  res.send("home page");
+});
 
-router.get("/", createUserController);
-router.post("/", validateBody(UserSchema), createUserController);
+//CRUD Ussers
+router.get("/getAllUsers", getAllUsersController);
+router.get("/getUserById/:id", getUserByIdController);
 
+router.get("/createUser", createUserController);
+router.post("/createUser", validateBody(UserSchema), createUserController);
+
+router.get("/updateUser/:id", updateUserController);
+router.put("/updateUser/:id", validateBody(UserSchema), updateUserController);
+
+router.delete("/deleteUser/:id", deleteUserController);
+
+//CRUD Course
 router.get("/createCourse", createCourseController);
 router.post(
   "/createCourse",
@@ -24,6 +44,16 @@ router.post(
   createCourseController
 );
 
-router.get("/users/:id", updateUserController);
-router.put("/users/:id", validateBody(UserSchema), updateUserController);
+router.get("/updateCourse/:id", updateCourseController);
+router.put(
+  "/updateCourse/:id",
+  validateBody(CourseSchema),
+  updateCourseController
+);
+
+router.delete("/deleteCourse/:id", deleteCourseController);
+
+router.get("/getAllCourses", getAllCoursesController);
+router.get("/getCourseById/:id", getCourseByIdController);
+
 export default router;
