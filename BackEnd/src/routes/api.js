@@ -4,6 +4,8 @@ import {
   deleteUserController,
   getAllUsersController,
   getUserByIdController,
+  getUserByEmailController,
+  changeUserPasswordController,
 } from "../controllers/user.controller.js";
 import {
   createCourseController,
@@ -11,11 +13,22 @@ import {
   deleteCourseController,
   getAllCoursesController,
   getCourseByIdController,
+  searchCoursesController,
 } from "../controllers/courses.controller.js";
+import {
+  enrollCourseController,
+  getCourseEnrollmentsController,
+  unenrollCourseController,
+  getUserEnrollmentsControllers,
+  isUserEnrolledController,
+  getAllEnrollmentsController,
+} from "../controllers/enrollments.controller.js";
 import express from "express";
 import { validateBody } from "../middleware/validateBody.js";
 import { CourseSchema } from "../validation/course.Schema.js";
 import { UserSchema } from "../validation/user.Schema.js";
+import { CourseSearchSchema } from "../validation/search.Schema.js";
+import { ChangePasswordSchema } from "../validation/changePassword.Schema.js";
 
 const router = express.Router();
 
@@ -24,36 +37,50 @@ router.get("/", (req, res) => {
   res.send("home page");
 });
 
-//CRUD Ussers
-router.get("/getAllUsers", getAllUsersController);
-router.get("/getUserById/:id", getUserByIdController);
+// ==================== Users ====================
+router.get("/users", getAllUsersController);
 
-router.get("/createUser", createUserController);
-router.post("/createUser", validateBody(UserSchema), createUserController);
+router.get("/users/:id", getUserByIdController);
 
-router.get("/updateUser/:id", updateUserController);
-router.put("/updateUser/:id", validateBody(UserSchema), updateUserController);
+router.post("/users", validateBody(UserSchema), createUserController);
 
-router.delete("/deleteUser/:id", deleteUserController);
+router.put("/users/:id", validateBody(UserSchema), updateUserController);
 
-//CRUD Course
-router.get("/createCourse", createCourseController);
-router.post(
-  "/createCourse",
-  validateBody(CourseSchema),
-  createCourseController
-);
+router.delete("/users/:id", deleteUserController);
 
-router.get("/updateCourse/:id", updateCourseController);
+router.get("/users", getUserByEmailController);
+
 router.put(
-  "/updateCourse/:id",
-  validateBody(CourseSchema),
-  updateCourseController
+  "/users/:id/password",
+  validateBody(ChangePasswordSchema),
+  changeUserPasswordController
 );
+// ==================== Courses ====================
+router.post("/courses", validateBody(CourseSchema), createCourseController);
 
-router.delete("/deleteCourse/:id", deleteCourseController);
+router.put("/courses/:id", validateBody(CourseSchema), updateCourseController);
 
-router.get("/getAllCourses", getAllCoursesController);
-router.get("/getCourseById/:id", getCourseByIdController);
+router.delete("/courses/:id", deleteCourseController);
 
+router.get("/courses", getAllCoursesController);
+
+router.get("/courses/:id", getCourseByIdController);
+
+router.post(
+  "/course/search",
+  validateBody(CourseSearchSchema),
+  searchCoursesController
+);
+// ==================== Enrollment ====================
+router.post("/courses/:courseId/enroll/:userId", enrollCourseController);
+
+router.delete("/courses/:courseId/enroll/:userId", unenrollCourseController);
+
+router.get("/users/:user_id/enrollments", getUserEnrollmentsControllers);
+router.get(
+  "/courses/:course_id/enrollments/:user_id/status",
+  isUserEnrolledController
+);
+router.get("/enrollments", getAllEnrollmentsController);
+router.get("/courses/:course_id/enrollments", getCourseEnrollmentsController);
 export default router;
