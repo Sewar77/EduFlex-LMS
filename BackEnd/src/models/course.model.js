@@ -15,12 +15,12 @@ export async function createCourse(courseInfo) {
         courseInfo.instructor_id, // <---- for now to prevent errors !
       ]
     );
-    return {
-      message: "Course created successfully",
-      course: result.rows[0],
-    };
+    if (result.rows[0]) {
+      return result.rows[0];
+    }
+    return null;
   } catch (err) {
-    console.error("REAL DB ERROR:", err);
+    console.error(err);
     throw err;
   }
 }
@@ -34,7 +34,7 @@ export async function updateCourse(courseInfo) {
             price=$3,
             thumbnail_url=$4
             where id = $5
- RETURNING *`,
+            RETURNING *`,
       [
         courseInfo.title,
         courseInfo.description,
@@ -44,29 +44,31 @@ export async function updateCourse(courseInfo) {
       ]
     );
     if (updatedCourse.rows[0]) {
-      return {
-        message: "Course updated successfully",
-        course: updatedCourse.rows[0],
-      };
+      return updatedCourse.rows[0];
     }
-    return {
-      message: "Course unfound",
-    };
+    return null;
   } catch (err) {
-    console.error(" REAL DB ERROR:", err);
+    console.error(err);
     throw err;
   }
 }
 
 //delete course:
-export async function deletCourse(id) {
+export async function deleteCourse(id) {
   try {
-    await pool.query("delete from course where id = $1", [id]);
-    return {
-      message: "User deleted ",
-    };
+    if (Number.isInteger(id)) {
+      const result = await pool.query("delete from courses where id = $1", [
+        id,
+      ]);
+      if (result.rowCount === 0) {
+        return false;
+      }
+      return true;
+    } else {
+      throw new Error("Invalid Course Id");
+    }
   } catch (err) {
-    console.error(" REAL DB ERROR:", err);
+    console.error(err);
     throw err;
   }
 }
@@ -75,14 +77,9 @@ export async function deletCourse(id) {
 export async function getAllCourses() {
   try {
     const allCourses = await pool.query("select * from courses");
-    if (allCourses.rows) {
-      return allCourses.rows;
-    }
-    return {
-      message: "No Courses to get",
-    };
+    return allCourses.rows;
   } catch (err) {
-    console.error(" REAL DB ERROR:", err);
+    console.error(err);
     throw err;
   }
 }
@@ -90,17 +87,37 @@ export async function getAllCourses() {
 //get course by Id
 export async function getCourseById(id) {
   try {
-    const course = await pool.query("select * from courses where id = $1", [
-      id,
-    ]);
-    if (course.rows.length !== 0) {
-      return course.rows[0];
+    if (Number.isInteger(id)) {
+      const course = await pool.query("select * from courses where id = $1", [
+        id,
+      ]);
+      if (course.rows.length !== 0) {
+        return course.rows[0];
+      }
+      return null;
+    } else {
+      throw new Error("Invalid Cours Id");
     }
-    return {
-      message: "no course with this id ",
-    };
   } catch (err) {
-    console.error(" REAL DB ERROR:", err);
+    console.error(err);
     throw err;
   }
 }
+
+//search
+export async function searchCourses(keyword) {
+  try {
+    const result = await pool.query(
+      `
+    select * from courses where lower(name) LIKE $1
+  `,
+      [`%${keyword.toLowerCase()}%`]
+    );
+    return result.rows;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+
