@@ -1,9 +1,9 @@
-import pool from "../config/db.js";
+import { query } from "../config/db.js";
 
 //courses:
 export async function createCourse(courseInfo) {
   try {
-    const result = await pool.query(
+    const result = await query(
       `INSERT INTO courses 
     (title, description, price, thumbnail_url, instructor_id) 
    VALUES ($1, $2, $3, $4, $5) RETURNING *`,
@@ -27,7 +27,7 @@ export async function createCourse(courseInfo) {
 
 export async function updateCourse(courseInfo) {
   try {
-    const updatedCourse = await pool.query(
+    const updatedCourse = await query(
       `update courses
        set title = $1,
             description=$2,
@@ -57,9 +57,7 @@ export async function updateCourse(courseInfo) {
 export async function deleteCourse(id) {
   try {
     if (Number.isInteger(id)) {
-      const result = await pool.query("delete from courses where id = $1", [
-        id,
-      ]);
+      const result = await query("delete from courses where id = $1", [id]);
       if (result.rowCount === 0) {
         return false;
       }
@@ -76,7 +74,7 @@ export async function deleteCourse(id) {
 //get all courses
 export async function getAllCourses() {
   try {
-    const allCourses = await pool.query("select * from courses");
+    const allCourses = await query("select * from courses");
     return allCourses.rows;
   } catch (err) {
     console.error(err);
@@ -88,9 +86,7 @@ export async function getAllCourses() {
 export async function getCourseById(id) {
   try {
     if (Number.isInteger(id)) {
-      const course = await pool.query("select * from courses where id = $1", [
-        id,
-      ]);
+      const course = await query("select * from courses where id = $1", [id]);
       if (course.rows.length !== 0) {
         return course.rows[0];
       }
@@ -107,10 +103,10 @@ export async function getCourseById(id) {
 //search
 export async function searchCourses(keyword) {
   try {
-    const result = await pool.query(
+    const result = await query(
       `
-    select * from courses where lower(name) LIKE $1
-  `,
+    select * from courses where lower(title) LIKE $1
+  `, 
       [`%${keyword.toLowerCase()}%`]
     );
     return result.rows;
@@ -119,5 +115,3 @@ export async function searchCourses(keyword) {
     throw err;
   }
 }
-
-

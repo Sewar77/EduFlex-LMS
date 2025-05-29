@@ -66,7 +66,11 @@ export async function getUserEnrollmentsControllers(req, res) {
     return res.status(400).json({ message: "invalid user id" });
   }
   try {
-    const result = await getUserEnrollments({ user_id });
+    const result = await getUserEnrollments(user_id);
+    if (result === false) {
+      return res.status(200).json({ message: "there is no enrolments" });
+  
+    }
     return res.status(200).json(result);
   } catch (err) {
     console.error("Can't get courses:", err);
