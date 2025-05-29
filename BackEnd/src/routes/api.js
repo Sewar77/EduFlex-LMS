@@ -4,7 +4,7 @@ import {
   deleteUserController,
   getAllUsersController,
   getUserByIdController,
- // getUserByEmailController,
+  // getUserByEmailController,
   changeUserPasswordController,
 } from "../controllers/user.controller.js";
 import {
@@ -30,22 +30,18 @@ import { UserSchema } from "../validation/user.Schema.js";
 import { CourseSearchSchema } from "../validation/search.Schema.js";
 import { ChangePasswordSchema } from "../validation/changePassword.Schema.js";
 
-import helmet from "helmet"
-import cors from "cors"
-import morgan from "morgan"
-
+import helmet from "helmet";
+import cors from "cors";
+import morgan from "morgan";
 
 const router = express.Router();
 router.use(helmet());
 router.use(
   cors({
     origin: process.env.CORS_ORIGIN,
-    methods: ["POST", "DELETE", "PUT", "PATCH", "GET"]
+    methods: ["POST", "DELETE", "PUT", "PATCH", "GET"],
   })
 );
-
-
-
 
 //home
 router.get("/", (req, res) => {
@@ -98,11 +94,5 @@ router.get(
 );
 router.get("/enrollments", getAllEnrollmentsController);
 router.get("/courses/:course_id/enrollments", getCourseEnrollmentsController);
-
-
-
-
-
-
 
 export default router;

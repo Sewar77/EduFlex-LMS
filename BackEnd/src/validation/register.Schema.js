@@ -18,7 +18,7 @@ export const registerSchema = Joi.object({
     "any.required": "Email is required.",
   }),
 
-  password_hash: Joi.string()
+  password: Joi.string()
     .pattern(
       new RegExp(
         "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$"
