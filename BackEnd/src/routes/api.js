@@ -4,7 +4,7 @@ import {
   deleteUserController,
   getAllUsersController,
   getUserByIdController,
-  getUserByEmailController,
+ // getUserByEmailController,
   changeUserPasswordController,
 } from "../controllers/user.controller.js";
 import {
@@ -30,7 +30,22 @@ import { UserSchema } from "../validation/user.Schema.js";
 import { CourseSearchSchema } from "../validation/search.Schema.js";
 import { ChangePasswordSchema } from "../validation/changePassword.Schema.js";
 
+import helmet from "helmet"
+import cors from "cors"
+import morgan from "morgan"
+
+
 const router = express.Router();
+router.use(helmet());
+router.use(
+  cors({
+    origin: process.env.CORS_ORIGIN,
+    methods: ["POST", "DELETE", "PUT", "PATCH", "GET"]
+  })
+);
+
+
+
 
 //home
 router.get("/", (req, res) => {
@@ -48,7 +63,7 @@ router.put("/users/:id", validateBody(UserSchema), updateUserController);
 
 router.delete("/users/:id", deleteUserController);
 
-router.get("/users", getUserByEmailController);
+//router.get("/users/email", getUserByEmailController);
 
 router.put(
   "/users/:id/password",
@@ -72,9 +87,9 @@ router.post(
   searchCoursesController
 );
 // ==================== Enrollment ====================
-router.post("/courses/:courseId/enroll/:userId", enrollCourseController);
+router.post("/courses/:course_id/enroll/:user_id", enrollCourseController);
 
-router.delete("/courses/:courseId/enroll/:userId", unenrollCourseController);
+router.delete("/courses/:course_id/enroll/:user_id", unenrollCourseController);
 
 router.get("/users/:user_id/enrollments", getUserEnrollmentsControllers);
 router.get(
@@ -83,4 +98,11 @@ router.get(
 );
 router.get("/enrollments", getAllEnrollmentsController);
 router.get("/courses/:course_id/enrollments", getCourseEnrollmentsController);
+
+
+
+
+
+
+
 export default router;
