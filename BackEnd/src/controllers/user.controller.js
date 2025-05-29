@@ -63,10 +63,14 @@ export async function deleteUserController(req, res) {
 //4- get all users:
 export async function getAllUsersController(req, res) {
   try {
-    const allUsers = await getAllUsers();
-    if (allUsers === null) {
-      return res.status(400).json({ message: "Cant get Users" });
+    if (req.query.email) {
+      const user = await getUserByEmail(req.query.email);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      return res.status(200).json(user);
     }
+    const allUsers = await getAllUsers();
     return res.status(200).json(allUsers);
   } catch (err) {
     console.error("Can't Get users: ", err);
@@ -97,7 +101,7 @@ export async function getUserByIdController(req, res) {
 }
 
 export async function changeUserPasswordController(req, res) {
-  const user_id = req.params.id;
+  const user_id = Number(req.params.id);
   const { newPassword } = req.body;
   if (!Number.isInteger(user_id)) {
     return res.status(404).json({ message: "Invalid user id" });
@@ -113,22 +117,21 @@ export async function changeUserPasswordController(req, res) {
   }
 }
 
-
-export async function getUserByEmailController(req, res) {
-  const { email } = req.body; // or req.query.email if using query params
-  if (!email || typeof email !== "string") {
-    return res.status(400).json({ message: "Email is required." });
-  }
-  try {
-    const user = await getUserByEmail(email);
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-    return res.status(200).json(user);
-  } catch (err) {
-    console.error("Can't get user by email:", err);
-    res
-      .status(500)
-      .json({ message: "Failed to get user. Please try again later." });
-  }
-}
+// export async function getUserByEmailController(req, res) {
+//   const { email } = req.body; // or req.query.email if using query params
+//   if (!email || typeof email !== "string") {
+//     return res.status(400).json({ message: "Email is required." });
+//   }
+//   try {
+//     const user = await getUserByEmail(email);
+//     if (!user) {
+//       return res.status(404).json({ message: "User with this email not found." });
+//     }
+//     return res.status(200).json(user);
+//   } catch (err) {
+//     console.error("Can't get user by email:", err);
+//     res
+//       .status(500)
+//       .json({ message: "Failed to get user. Please try again later." });
+//   }
+// }
