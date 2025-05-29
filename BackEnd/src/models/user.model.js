@@ -96,7 +96,10 @@ export async function getAllUsers() {
 export async function getUserById(id) {
   try {
     if (Number.isInteger(id)) {
-      const result = await query("SELECT * FROM users WHERE id = $1", [id]);
+      const result = await query(
+        "SELECT email, name, role, is_active FROM users WHERE id = $1",
+        [id]
+      );
       if (!result.rows[0]) {
         return null;
       }
@@ -119,17 +122,14 @@ export async function getUserByEmail(email) {
     throw err;
   }
 }
-
 export async function changeUserPassword({ user_id, newPassword }) {
   try {
     const hashedPassword = await bcrypt.hash(
       newPassword,
       Number(process.env.BCRYPT_SALT_ROUNDS)
     );
-    if (!Number.isInteger(user_id)) return false;
     const result = await query(
-      `update users 
-set password_hash = $1 where id = $2 returning *`,
+      `UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING *`,
       [hashedPassword, user_id]
     );
     return result.rows[0] || null;

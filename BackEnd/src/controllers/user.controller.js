@@ -101,14 +101,25 @@ export async function getUserByIdController(req, res) {
 }
 
 export async function changeUserPasswordController(req, res) {
-  const user_id = Number(req.params.id);
-  const { newPassword } = req.body;
-  if (!Number.isInteger(user_id)) {
-    return res.status(404).json({ message: "Invalid user id" });
-  }
+  const { email, currentPassword, newPassword } = req.body;
   try {
-    const changePassword = await changeUserPassword({ user_id, newPassword });
-    return res.status(200).json({ changePassword });
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    const isMatch = await verifyPassword(currentPassword, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    const updatedUser = await changeUserPassword({
+      user_id: user.id,
+      newPassword,
+    });
+    if (!updatedUser) {
+      return res.status(500).json({ message: "Failed to update password" });
+    }
+
+    return res.status(200).json({ message: "Password changed successfully" });
   } catch (err) {
     console.error("Can't change user password: ", err);
     res.status(500).json({
