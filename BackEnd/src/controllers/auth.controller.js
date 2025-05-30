@@ -12,6 +12,18 @@ export async function Register(req, res, next) {
     if (existingUser) throw new Error("Email already in Use");
     const newUser = await createUser(userInfo);
     const token = generateTokens(newUser.id);
+    
+    //create seesion
+    req.session.userId = newUser.id;
+    req.session.authenticated = true;
+
+    res.cookie("token", token, {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: "strict",
+    });
+
     res.status(201).json({
       success: true,
       token: token,
@@ -33,7 +45,20 @@ export async function Login(req, res, next) {
     if (!existingUser) throw new Error("User Not found");
     const isMatch = await verifyPassword(password, existingUser.password_hash);
     if (!isMatch) throw new Error("Email or Password are not correct");
+
+    //create seesion
+    req.session.userId = user.id;
+    req.session.authenticated = true;
+
     const token = generateTokens(existingUser.id);
+
+    res.cookie("token", token, {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: "strict",
+    });
+
     res.json({
       success: true,
       token: token,
@@ -56,6 +81,19 @@ export async function getCurrentLogInInfo(req, res) {
       success: true,
       user,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function logout(req, res, next) {
+  try {
+    req.session.destroy((err) => {
+      if (err) throw err;
+    });
+    res.clearCookie("token");
+    res.clearCookie("connect.sid");
+    res.json({ success: true, message: "Logged out successfully" });
   } catch (err) {
     next(err);
   }

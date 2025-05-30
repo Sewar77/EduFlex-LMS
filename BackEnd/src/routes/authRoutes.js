@@ -14,4 +14,16 @@ authRouter.post("/login", validateBody(loginSchema), Login);
 
 authRouter.get("/me", authenticateToken, getCurrentLogInInfo);
 
+authRouter.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+authRouter.get(
+  "/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/" }),
+  (req, res) => {
+    res.redirect("/home");
+  }
+);
 export default authRouter;

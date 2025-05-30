@@ -30,18 +30,7 @@ import { UserSchema } from "../validation/user.Schema.js";
 import { CourseSearchSchema } from "../validation/search.Schema.js";
 import { ChangePasswordSchema } from "../validation/changePassword.Schema.js";
 
-import helmet from "helmet";
-import cors from "cors";
-import morgan from "morgan";
-
 const router = express.Router();
-router.use(helmet());
-router.use(
-  cors({
-    origin: process.env.CORS_ORIGIN,
-    methods: ["POST", "DELETE", "PUT", "PATCH", "GET"],
-  })
-);
 
 //home
 router.get("/", (req, res) => {
