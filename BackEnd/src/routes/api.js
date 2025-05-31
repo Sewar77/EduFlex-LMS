@@ -29,6 +29,7 @@ import { CourseSchema } from "../validation/course.Schema.js";
 import { UserSchema } from "../validation/user.Schema.js";
 import { CourseSearchSchema } from "../validation/search.Schema.js";
 import { ChangePasswordSchema } from "../validation/changePassword.Schema.js";
+import { getCurrentLogInInfo, logout, Login, Register } from "../controllers/auth.controller.js";
 
 const router = express.Router();
 
@@ -36,6 +37,15 @@ const router = express.Router();
 router.get("/", (req, res) => {
   res.send("home page");
 });
+
+// ==================== Google AOAuth ====================
+router.get("/google", googleAuth);
+router.get("/google/callback", googleCallBack);
+
+router.get("/users", isAuthenticated, getCurrentLogInInfo);
+router.get("/logout", isAuthenticated, logout);
+router.get("/users", refreshToken);
+
 
 // ==================== Users ====================
 router.get("/users", getAllUsersController);

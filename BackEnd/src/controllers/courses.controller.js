@@ -116,8 +116,3 @@ export async function searchCoursesController(req, res) {
   }
 }
 
-
-
-
-
-

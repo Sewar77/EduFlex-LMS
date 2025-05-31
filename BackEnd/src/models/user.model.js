@@ -5,19 +5,26 @@ import bcrypt from "bcryptjs";
 //1- create user
 export async function createUser(userInfo) {
   try {
-    const hashedPassword = await bcrypt.hash(
-      userInfo.password,
-      Number(process.env.BCRYPT_SALT_ROUNDS)
-    );
+    let hashedPassword = null;
+    if (userInfo.password) {
+      hashedPassword = await bcrypt.hash(
+        userInfo.password,
+        Number(process.env.BCRYPT_SALT_ROUNDS)
+      );
+    }
     const result = await query(
-      "insert into users (name, email, password_hash, role) values($1, $2, $3, $4) RETURNING *",
+      "insert into users (name, email, password_hash, role, avatar, oauth_provider, oauth_id) values($1, $2, $3, $4, $5, $6, $7) RETURNING *",
       [
         userInfo.name,
         userInfo.email,
         hashedPassword,
         userInfo.role || "student",
+        userInfo.avatar || null,
+        userInfo.oauth_provider || null,
+        userInfo.oauth_id || null,
       ]
     );
+
     if (result.rows[0]) {
       return result.rows[0];
     }
@@ -43,13 +50,15 @@ export async function updateUser(userInfo) {
            email = $2, 
            password_hash = $3, 
            role = $4
-       WHERE id = $5
+           avatar = $5
+       WHERE id = $6
        RETURNING *`,
       [
         userInfo.name,
         userInfo.email,
         hashedPassword,
         userInfo.role,
+        userInfo.avatar || null,
         userInfo.id,
       ]
     );
@@ -66,7 +75,7 @@ export async function updateUser(userInfo) {
 //3- delete user
 export async function deleteUser(id) {
   try {
-    if (Number.isInteger(id)) {
+    if (Number.isInteger(id)) { 
       const result = await query("delete from users where id = $1", [id]);
       if (result.rowCount > 0) {
         return true;
@@ -97,7 +106,7 @@ export async function getUserById(id) {
   try {
     if (Number.isInteger(id)) {
       const result = await query(
-        "SELECT email, name, role, is_active FROM users WHERE id = $1",
+        "SELECT email, name, role, is_active, avatar FROM users WHERE id = $1",
         [id]
       );
       if (!result.rows[0]) {
@@ -133,6 +142,22 @@ export async function changeUserPassword({ user_id, newPassword }) {
       [hashedPassword, user_id]
     );
     return result.rows[0] || null;
+  } catch (err) {
+    console.error(err.message);
+    throw err;
+  }
+}
+
+export async function getUserbyGoogleId(id) {
+  try {
+    const googleId = await query(
+      "select email,oauth_id, name, role, avatar from users where oauth_id = $1",
+      [id]
+    );
+    if (!googleId.rows[0]) {
+      return null;
+    }
+    return googleId.rows[0];
   } catch (err) {
     console.error(err.message);
     throw err;

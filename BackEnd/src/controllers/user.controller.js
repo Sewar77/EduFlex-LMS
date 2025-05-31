@@ -6,12 +6,21 @@ import {
   getUserById,
   changeUserPassword,
   getUserByEmail,
+  getUserbyGoogleId,
 } from "../models/user.model.js";
 
 //1-create user
 export async function createUserController(req, res) {
   try {
     const userInfo = { ...req.body };
+    if (userInfo.oauth_provider === "google" && userInfo.oauth_id) {
+      userInfo.passord = null;
+      userInfo.avatar = userInfo.avatar || null;
+    } else {
+      userInfo.oauth_provider = null;
+      userInfo.oauth_id = null;
+      userInfo.avatar = userInfo.avatar || null;
+    }
     await createUser(userInfo);
     return res.status(201).json({ message: "User created success" }); //not created yet.
   } catch (err) {
@@ -124,6 +133,25 @@ export async function changeUserPasswordController(req, res) {
     console.error("Can't change user password: ", err);
     res.status(500).json({
       message: "Failed to change user password. Please try again later.",
+    });
+  }
+}
+
+export async function getUserbyGoogleIdController(req, res) {
+  const id = req.params.oauth_id;
+  if (!id) {
+    return res.status(400).json({ message: "Google ID is required" });
+  }
+  try {
+    const userById = await getUserbyGoogleId(id);
+    if (userById === null) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json(userById);
+  } catch (err) {
+    console.error("Can't Get user with google id: ", err);
+    res.status(500).json({
+      message: "Failed to get user with google id. Please try again later.",
     });
   }
 }
