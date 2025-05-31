@@ -18,18 +18,22 @@ export const UserSchema = Joi.object({
     "any.required": "Email is required.",
   }),
 
-  password: Joi.string()
-    .pattern(
-      new RegExp(
-        "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$"
+  password: Joi.when("oauth_provider", {
+    is: "google",
+    then: Joi.string().allow(null, ""), 
+    otherwise: Joi.string()
+      .pattern(
+        new RegExp(
+          "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$"
+        )
       )
-    )
-    .required()
-    .messages({
-      "string.pattern.base":
-        "Password must be at least 8 characters long, include at least one uppercase letter, one number, and one special character (!@#$%^&*).",
-      "any.required": "Password is required.",
-    }),
+      .required()
+      .messages({
+        "string.pattern.base":
+          "Password must be at least 8 characters long, include at least one uppercase letter, one number, and one special character (!@#$%^&*).",
+        "any.required": "Password is required.",
+      }),
+  }),
 
   role: Joi.string().valid("admin", "instructor", "student").default("student"),
 

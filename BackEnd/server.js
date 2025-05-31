@@ -8,8 +8,7 @@ import morgan from "morgan";
 import { errorHandler, notFound } from "./src/middleware/error.js";
 import session from "express-session";
 import cookieParser from "cookie-parser";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import passport from "passport";
+import passport from "./src/config/passport.js";
 
 const app = express();
 const PORT = process.env.PORT || "5000";
@@ -25,6 +24,25 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+const Limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: createResponse(
+    false,
+    "too many requests",
+    null,
+    "rate limit exceeded"
+  ),
+  standardHeaders: true,
+  legacyHeader: false,
+});
+app.use(Limiter)
+
+
+app.use(session(sessionConfig))
+
+
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(cookieParser());
 app.use(
@@ -45,23 +63,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    },
-    (accessToken, refreshToken, profile, done) => {
-      // TODO: Find or create user in your DB here
-      return done(null, profile);
-    }
-  )
-);
-
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((obj, done) => done(null, obj));
-
 // 3. Routers
 app.use("/api", router);
 app.use("/api/auth", authRouter);
@@ -69,9 +70,6 @@ app.use("/api/auth", authRouter);
 // 4. Health and root endpoints
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
-});
-app.get("/", (req, res) => {
-  res.send("<a href='/api/auth/google'>LogIn with Google</a>");
 });
 
 // 5. Error handling
