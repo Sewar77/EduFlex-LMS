@@ -15,16 +15,23 @@ passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
+      prompt: "select_account",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: process.env.GOOGLE_CALLBACK_URL,
       scope: ["profile", "email"],
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log("Google profile:", profile);
+
+        // Try to find user by Google ID
         let user = await getUserbyGoogleId(profile.id);
         if (user) {
+          console.log("User found by Google ID:", user);
           return done(null, user);
         }
+
+        // Prepare new user data
         const newUser = {
           name: profile.displayName,
           email:
@@ -40,9 +47,14 @@ passport.use(
           role: "student",
           password: null,
         };
+
+        // Create new user
         const userCreated = await createUser(newUser);
+        console.log("User created:", userCreated);
+
         return done(null, userCreated);
       } catch (err) {
+        console.error("GoogleStrategy error:", err);
         return done(err, null);
       }
     }

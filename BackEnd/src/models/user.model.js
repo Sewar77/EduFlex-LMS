@@ -75,7 +75,7 @@ export async function updateUser(userInfo) {
 //3- delete user
 export async function deleteUser(id) {
   try {
-    if (Number.isInteger(id)) { 
+    if (Number.isInteger(id)) {
       const result = await query("delete from users where id = $1", [id]);
       if (result.rowCount > 0) {
         return true;
@@ -104,17 +104,26 @@ export async function getAllUsers() {
 //5- get user by id.
 export async function getUserById(id) {
   try {
-    if (Number.isInteger(id)) {
+    console.log("getUserById called with id:", id, "typeof:", typeof id);
+    const userId = Number(id);
+    console.log(
+      "Converted userId:",
+      userId,
+      "isInteger:",
+      Number.isInteger(userId)
+    );
+    if (Number.isInteger(userId) && userId > 0) {
       const result = await query(
-        "SELECT email, name, role, is_active, avatar FROM users WHERE id = $1",
-        [id]
+        "SELECT id, email, name, role, is_active, avatar FROM users WHERE id = $1",
+        [userId]
       );
       if (!result.rows[0]) {
         return null;
       }
+      console.log("getUserById called with id:", id);
       return result.rows[0];
     } else {
-      throw new Error("Invalid User id");
+      throw new Error("Invalid User id id");
     }
   } catch (err) {
     console.error(err.message);

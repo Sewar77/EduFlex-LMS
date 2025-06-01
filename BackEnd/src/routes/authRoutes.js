@@ -5,7 +5,7 @@ import { loginSchema } from "../validation/login.Schema.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { getCurrentLogInInfo } from "../controllers/auth.controller.js";
-import { authorize } from "../middleware/authorize.js";
+import passport from "../config/passport.js";
 
 const authRouter = Router();
 
