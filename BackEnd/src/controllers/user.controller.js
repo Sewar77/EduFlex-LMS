@@ -93,7 +93,7 @@ export async function getAllUsersController(req, res) {
 export async function getUserByIdController(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
-    return res.status(404).json({ message: "Invalid user id" });
+    return res.status(404).json({ message: "Invalid user id controller" });
   }
   try {
     const userById = await getUserById(id);

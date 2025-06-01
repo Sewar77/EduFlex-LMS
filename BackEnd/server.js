@@ -9,10 +9,14 @@ import { errorHandler, notFound } from "./src/middleware/error.js";
 import session from "express-session";
 import cookieParser from "cookie-parser";
 import passport from "./src/config/passport.js";
+import rateLimit from "express-rate-limit";
+import { createResponse } from "./src/utils/helper.js";
 
 const app = express();
 const PORT = process.env.PORT || "5000";
 const ENV = process.env.NODE_ENV || "development";
+
+app.get("/favicon.ico", (req, res) => res.status(204).end());
 
 // 1. Core middleware
 app.use(express.json());
@@ -37,27 +41,24 @@ const Limiter = rateLimit({
   standardHeaders: true,
   legacyHeader: false,
 });
-app.use(Limiter)
+app.use(Limiter);
 
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    sameSite: "strict",
+  },
+};
 
-app.use(session(sessionConfig))
-
+app.use(session(sessionConfig));
 
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 app.use(cookieParser());
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      sameSite: "strict",
-    },
-  })
-);
 
 // 2. Passport
 app.use(passport.initialize());
