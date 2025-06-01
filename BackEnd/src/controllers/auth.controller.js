@@ -9,10 +9,12 @@ import {
   getUserById,
 } from "../models/user.model.js";
 import passport from "../config/passport.js";
-import { jwt } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+
 //start google oauth flow
 export const googleAuth = passport.authenticate("google", {
   scope: ["profile", "email"],
+  prompt: "select_account",
 });
 
 //handle google auth callback
@@ -23,46 +25,47 @@ export const googleCallBack = (req, res, next) => {
     async (err, user) => {
       if (err) {
         console.error("Google OAuth errer: ", err);
-        return res.redirect(
-          `${process.env.CLIENT_URL}/login?error=oauth_error`
-        );
+        return res.status(200).json({ message: "You are Loggid in" });
       }
       if (!user) {
-        return res.redirect(
-          `${process.env.CLIENT_URL}/login?error=oauth_failed`
-        );
+        return res.status(200).json({ message: "Not Logged in " });
       }
       try {
         req.login(user, (err) => {
           if (err) {
             console.error("loging error", err);
-            return res.redirect(
-              `${process.env.CLIENT_URL}/login?error=oauth_failed`
-            );
+            return res.status(200).json({ message: "Filed logged in1" });
+            // return res.redirect(
+            //   `${process.env.CLIENT_URL}/login?error=oauth_failed`
+            // );
           }
+          req.session.userId = user.id;
+          req.session.authenticated = true;
           const tokenPayload = { id: user.id, email: user.email };
           const accessToken = generateTokens(tokenPayload);
           const refreshToken = generateRefreshTokens(tokenPayload);
-
-          //set http-only cookies foe security
-          res.cookie("accessToken", accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 24 * 60 * 60 * 1000,
-          });
-
-          //set http-only cookies foe security
-          res.cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 24 * 60 * 60 * 1000,
+          req.session.save(() => {
+            // Set http-only cookies for security
+            res.cookie("accessToken", accessToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              maxAge: 24 * 60 * 60 * 1000,
+            });
+            res.cookie("refreshToken", refreshToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              maxAge: 24 * 60 * 60 * 1000,
+            });
+            res.json({ success: true, user });
           });
         });
-      } catch (err) {}
+      } catch (err) {
+        next(err);
+      }
     }
-  );
+  )(req, res, next);
 };
 
 export async function Register(req, res, next) {
@@ -71,27 +74,31 @@ export async function Register(req, res, next) {
     const existingUser = await getUserByEmail(userInfo.email); //null if not existing
     if (existingUser) throw new Error("Email already in Use");
     const newUser = await createUser(userInfo);
-    const token = generateTokens(newUser.id);
 
     //create seesion
     req.session.userId = newUser.id;
     req.session.authenticated = true;
 
-    res.cookie("token", token, {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-      sameSite: "strict",
-    });
+    req.session.save(() => {
+      const token = generateTokens(existingUser.id);
 
-    res.status(201).json({
-      success: true,
-      token: token,
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-      },
+      res.cookie("token", token, {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: "strict",
+      });
+
+      res.json({
+        success: true,
+        token: token,
+        user: {
+          id: existingUser.id,
+          email: existingUser.email,
+          role: existingUser.role,
+        },
+        message: "Loged In",
+      });
     });
   } catch (err) {
     next(err);
@@ -107,41 +114,49 @@ export async function Login(req, res, next) {
     if (!isMatch) throw new Error("Email or Password are not correct");
 
     //create seesion
-    req.session.userId = user.id;
+    req.session.userId = existingUser.id;
     req.session.authenticated = true;
 
-    const token = generateTokens(existingUser.id);
+    req.session.save(() => {
+      const token = generateTokens(existingUser.id);
 
-    res.cookie("token", token, {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-      sameSite: "strict",
-    });
+      res.cookie("token", token, {
+        secure: process.env.NODE_ENV === "production",
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: "strict",
+      });
 
-    res.json({
-      success: true,
-      token: token,
-      user: {
-        id: existingUser.id,
-        email: existingUser.email,
-        role: existingUser.role,
-      },
-      message: "Loged In",
+      res.json({
+        success: true,
+        token: token,
+        user: {
+          id: existingUser.id,
+          email: existingUser.email,
+          role: existingUser.role,
+        },
+        message: "Loged In",
+      });
     });
   } catch (err) {
     next(err);
   }
 }
 
-export async function getCurrentLogInInfo(req, res) {
+export async function getCurrentLogInInfo(req, res, next) {
   try {
-    const user = await getUserById(req.user.id); //null if not existing
-    if (!user) throw new Error("User Not found");
-    res.json({
-      success: true,
-      user,
-    });
+    if (!req.user || !req.user.id) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User not authenticated" });
+    }
+    const user = await getUserById(req.user.id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, user });
   } catch (err) {
     next(err);
   }
@@ -149,17 +164,27 @@ export async function getCurrentLogInInfo(req, res) {
 
 export async function logout(req, res, next) {
   try {
-    req.session.destroy((err) => {
-      if (err) throw err;
-    });
-    res.clearCookie("token");
-    res.clearCookie("connect.sid");
-    res.json({ success: true, message: "Logged out successfully" });
+    // Destroy session if exists
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          return next(err);
+        }
+        // Clear cookies
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+        res.json({ success: true, message: "Logged out successfully" });
+      });
+    } else {
+      // Clear cookies even if no session
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+      res.json({ success: true, message: "Logged out successfully" });
+    }
   } catch (err) {
     next(err);
   }
 }
-
 export async function getCurrentUser(req, res) {
   try {
     if (!req.user) {
