@@ -75,12 +75,12 @@ export async function Register(req, res, next) {
     if (existingUser) throw new Error("Email already in Use");
     const newUser = await createUser(userInfo);
 
-    //create seesion
+    //create session
     req.session.userId = newUser.id;
     req.session.authenticated = true;
 
     req.session.save(() => {
-      const token = generateTokens(existingUser.id);
+      const token = generateTokens(newUser.id);
 
       res.cookie("token", token, {
         secure: process.env.NODE_ENV === "production",
@@ -93,9 +93,9 @@ export async function Register(req, res, next) {
         success: true,
         token: token,
         user: {
-          id: existingUser.id,
-          email: existingUser.email,
-          role: existingUser.role,
+          id: newUser.id,
+          email: newUser.email,
+          role: newUser.role,
         },
         message: "Loged In",
       });
@@ -109,11 +109,21 @@ export async function Login(req, res, next) {
   try {
     const { email, password } = { ...req.body };
     const existingUser = await getUserByEmail(email); //null if not existing
-    if (!existingUser) throw new Error("User Not found");
+    if (!existingUser) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
     const isMatch = await verifyPassword(password, existingUser.password_hash);
-    if (!isMatch) throw new Error("Email or Password are not correct");
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Email or password are not correct",
+      });
+    }
 
-    //create seesion
+    //create session
     req.session.userId = existingUser.id;
     req.session.authenticated = true;
 
