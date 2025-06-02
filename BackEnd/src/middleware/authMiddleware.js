@@ -68,9 +68,9 @@ export const authenticateJWT = async (req, res, next) => {
         );
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded JWT:", decoded);
+
     const user = await getUserById(decoded.id);
-    console.log("User from DB:", user);
+
     if (!user) {
       return res
         .status(401)

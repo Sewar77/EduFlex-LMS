@@ -2,6 +2,7 @@ import express from "express";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
 import { quizSchema } from "../validation/quize.Schema.js";
 import { validateBody } from "../middleware/validateBody.js";
+import { requireRole } from "../middleware/roleMiddlware.js";
 import {
   createQuizController,
   getQuizByIdController,
@@ -16,6 +17,7 @@ const quizRouter = express.Router();
 quizRouter.post(
   "/quizzes",
   authenticateJWT,
+  requireRole("instructor", "admin"),
   validateBody(quizSchema),
   createQuizController
 );
@@ -34,11 +36,17 @@ quizRouter.get(
 quizRouter.put(
   "/quizzes/:id",
   authenticateJWT,
+  requireRole("instructor", "admin"),
   validateBody(quizSchema),
   updateQuizController
 );
 
 // Delete quiz
-quizRouter.delete("/quizzes/:id", authenticateJWT, deleteQuizController);
+quizRouter.delete(
+  "/quizzes/:id",
+  authenticateJWT,
+  requireRole("instructor", "admin"),
+  deleteQuizController
+);
 
 export default quizRouter;
