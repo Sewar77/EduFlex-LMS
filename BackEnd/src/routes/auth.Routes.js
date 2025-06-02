@@ -28,4 +28,5 @@ authRouter.get("/logout", authenticateJWT, logout);
 authRouter.get("/google", googleAuth);
 authRouter.get("/google/callback", googleCallBack);
 
+
 export default authRouter;

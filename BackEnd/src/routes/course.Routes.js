@@ -3,6 +3,7 @@ import { CourseSchema } from "../validation/course.Schema.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
 import { CourseSearchSchema } from "../validation/search.Schema.js";
+import { requireRole } from "../middleware/roleMiddleware.js";
 import {
   createCourseController,
   updateCourseController,
@@ -18,16 +19,25 @@ const coursesRouter = express.Router();
 coursesRouter.post(
   "/courses",
   authenticateJWT,
+  requireRole("instructor", "admin"),
   validateBody(CourseSchema),
   createCourseController
 );
 coursesRouter.put(
   "/courses/:id",
   authenticateJWT,
+  requireRole("instructor", "admin"),
   validateBody(CourseSchema),
   updateCourseController
 );
-coursesRouter.delete("/courses/:id", authenticateJWT, deleteCourseController);
+
+coursesRouter.delete(
+  "/courses/:id",
+  authenticateJWT,
+  requireRole("instructor", "admin"),
+  deleteCourseController
+);
+
 coursesRouter.get("/courses", getAllCoursesController);
 coursesRouter.get("/courses/:id", getCourseByIdController);
 coursesRouter.post(

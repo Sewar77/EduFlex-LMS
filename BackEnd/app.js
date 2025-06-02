@@ -9,6 +9,7 @@ import assignmentRouter from "./src/routes/assignment.Routes.js";
 import quizRouter from "./src/routes/quize.Routes.js";
 import submissionRouter from "./src/routes/submissions.Routes.js";
 import homeRouter from "./src/routes/home.Routes.js";
+import categoryRouter from "./src/routes/category.Routes.js";
 import "dotenv/config";
 import helmet from "helmet";
 import cors from "cors";
@@ -80,6 +81,7 @@ app.use("/api", homeRouter);
 app.use("/api", quizRouter);
 app.use("/api", assignmentRouter);
 app.use("/api", submissionRouter);
+app.use("/api", categoryRouter);
 app.use("/api/auth", authRouter);
 
 // 4. Health and root endpoints

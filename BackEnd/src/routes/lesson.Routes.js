@@ -2,6 +2,7 @@ import { lessonSchema } from "../validation/lesson.Schema.js";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
 import express from "express";
 import { validateBody } from "../middleware/validateBody.js";
+import { requireRole } from "../middleware/roleMiddleware.js";
 import {
   createLessonController,
   deleteLessonController,
@@ -16,6 +17,7 @@ const lessonRouter = express.Router();
 lessonRouter.post(
   "/lessons",
   authenticateJWT,
+  requireRole("instructor", "admin"),
   validateBody(lessonSchema),
   createLessonController
 );
@@ -34,11 +36,17 @@ lessonRouter.get("/lessons/:id", authenticateJWT, getLessonByIdController);
 lessonRouter.put(
   "/lessons/:id",
   authenticateJWT,
+  requireRole("instructor", "admin"),
   validateBody(lessonSchema),
   updateLessonController
 );
 
 // Delete lesson
-lessonRouter.delete("/lessons/:id", authenticateJWT, deleteLessonController);
+lessonRouter.delete(
+  "/lessons/:id",
+  authenticateJWT,
+  requireRole("instructor", "admin"),
+  deleteLessonController
+);
 
 export default lessonRouter;

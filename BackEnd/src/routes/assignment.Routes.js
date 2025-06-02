@@ -1,7 +1,8 @@
 import express from "express";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
 import { validateBody } from "../middleware/validateBody.js";
-import assignmentSchema from  "../validation/assignments.Schema.js"
+import { assignmentSchema } from  "../validation/assignments.Schema.js"
+import { requireRole } from "../middleware/roleMiddleware.js";
 import {
   createAssignmentController,
   getAssignmentByIdController,
@@ -18,6 +19,7 @@ const assignmentRouter = express.Router();
 assignmentRouter.post(
   "/assignments",
   authenticateJWT,
+  requireRole("instructor", "admin"),
   validateBody(assignmentSchema), // Uncomment if you have a schema
   createAssignmentController
 );
@@ -40,7 +42,8 @@ assignmentRouter.get(
 assignmentRouter.put(
   "/assignments/:id",
   authenticateJWT,
-   validateBody(assignmentSchema), // Uncomment if you have a schema
+  requireRole("instructor", "admin"),
+  validateBody(assignmentSchema), // Uncomment if you have a schema
   updateAssignmentController
 );
 
@@ -48,7 +51,9 @@ assignmentRouter.put(
 assignmentRouter.delete(
   "/assignments/:id",
   authenticateJWT,
+  requireRole("instructor", "admin"),
   deleteAssignmentController
 );
+
 
 export default assignmentRouter;

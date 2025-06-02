@@ -31,4 +31,3 @@ export const assignmentSchema = Joi.object({
   }),
 });
 
-export default assignmentSchema;
