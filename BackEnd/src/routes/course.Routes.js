@@ -3,7 +3,7 @@ import { CourseSchema } from "../validation/course.Schema.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
 import { CourseSearchSchema } from "../validation/search.Schema.js";
-import { requireRole } from "../middleware/roleMiddleware.js";
+import { requireRole } from "../middleware/roleMiddlware.js";
 import {
   createCourseController,
   updateCourseController,

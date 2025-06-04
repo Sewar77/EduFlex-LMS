@@ -2,7 +2,7 @@ import { lessonSchema } from "../validation/lesson.Schema.js";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
 import express from "express";
 import { validateBody } from "../middleware/validateBody.js";
-import { requireRole } from "../middleware/roleMiddleware.js";
+import { requireRole } from "../middleware/roleMiddlware.js";
 import {
   createLessonController,
   deleteLessonController,

@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
-import { requireRole } from "../middleware/roleMiddleware.js";
+import { requireRole } from "../middleware/roleMiddlware.js";
 import {
   createCategoryController,
   getAllCategoriesController,
