@@ -28,13 +28,13 @@ export const googleCallBack = (req, res, next) => {
         return res.status(200).json({ message: "You are Loggid in" });
       }
       if (!user) {
-        return res.status(200).json({ message: "Not Logged in " });
+        return res.status(401).json({ message: "Not Logged in " });
       }
       try {
         req.login(user, (err) => {
           if (err) {
             console.error("loging error", err);
-            return res.status(200).json({ message: "Filed logged in1" });
+            return res.status(500).json({ message: "Filed logged in1" });
             // return res.redirect(
             //   `${process.env.CLIENT_URL}/login?error=oauth_failed`
             // );
@@ -108,6 +108,8 @@ export async function Register(req, res, next) {
 export async function Login(req, res, next) {
   try {
     const { email, password } = { ...req.body };
+    console.log("Received data:", req.body);
+    
     const existingUser = await getUserByEmail(email); //null if not existing
     if (!existingUser) {
       return res.status(401).json({
@@ -246,7 +248,7 @@ export const refreshToken = (req, res) => {
       email: decoded.email,
     });
 
-    res.cookie("accessToken", accessToken, {
+    res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -256,9 +258,9 @@ export const refreshToken = (req, res) => {
       createResponse(true, "token refreshed", { accessToken: newAccessToken })
     );
   } catch (err) {
-    console.error("cant refresh token", error);
+    console.error("cant refresh token", err);
     return res
       .status(500)
-      .json(createResponse(false, "Server error", null, error.message));
+      .json(createResponse(false, "Server error", null, err.message));
   }
 };
