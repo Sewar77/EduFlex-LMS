@@ -49,16 +49,25 @@ export async function unenrollCourse({ user_id, course_id }) {
 }
 
 //get user enrollments
+// getUserEnrollments(user_id)
 export async function getUserEnrollments(user_id) {
   try {
     if (Number.isInteger(user_id)) {
-      const userCourses = await query(
-        `SELECT courses.* 
-          FROM courses 
-          JOIN enrollments ON enrollments.course_id = courses.id
-          WHERE enrollments.user_id = $1`,
-        [user_id]
-      );
+   const userCourses = await query(
+     `SELECT 
+    courses.id AS course_id,
+    courses.title AS title,
+    courses.thumbnail_url AS thumbnail,
+    users.name AS instructor_name,
+    enrollments.enrolled_at,
+    enrollments.progress
+  FROM enrollments
+  JOIN courses ON enrollments.course_id = courses.id
+  JOIN users ON courses.instructor_id = users.id
+  WHERE enrollments.user_id = $1`,
+     [user_id]
+   );
+
       return userCourses.rows;
     }
     return false;
@@ -67,6 +76,7 @@ export async function getUserEnrollments(user_id) {
     throw err;
   }
 }
+
 
 //search course
 export async function isUserEnrolled({ user_id, course_id }) {

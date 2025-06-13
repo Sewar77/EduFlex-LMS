@@ -23,7 +23,7 @@ enrollmentsRouter.delete(
   unenrollCourseController
 );
 enrollmentsRouter.get(
-  "/users/:user_id/enrollments",
+  "/enrollments/my-courses",
   authenticateJWT,
   getUserEnrollmentsControllers
 );

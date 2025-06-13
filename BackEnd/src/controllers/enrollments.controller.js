@@ -49,6 +49,7 @@ export async function unenrollCourseController(req, res) {
         message: "User is not enroll in this course",
       });
     }
+
     return res.status(200).json({
       message: "User Unenrollment seccessfuly",
     });
@@ -61,7 +62,7 @@ export async function unenrollCourseController(req, res) {
 }
 
 export async function getUserEnrollmentsControllers(req, res) {
-  const user_id = Number(req.params.user_id);
+  const user_id = Number(req.user.user_id);
   if (!Number.isInteger(user_id)) {
     return res.status(400).json({ message: "invalid user id" });
   }
@@ -69,9 +70,21 @@ export async function getUserEnrollmentsControllers(req, res) {
     const result = await getUserEnrollments(user_id);
     if (result === false) {
       return res.status(200).json({ message: "there is no enrolments" });
-  
     }
-    return res.status(200).json(result);
+    const mappedResult = result.map((row) => ({
+      course: {
+        _id: row.course_id,
+        title: row.title || "Untitled Course",
+        thumbnail: row.thumbnail || "/default-course.jpg",
+        instructor: {
+          name: row.instructor_name || "Unknown Instructor",
+        },
+      },
+      enrollmentDate: row.enrolled_at,
+      progress: row.progress || 0,
+    }));
+
+    res.status(200).json({ result: mappedResult });
   } catch (err) {
     console.error("Can't get courses:", err);
     res.status(500).json({
@@ -88,7 +101,7 @@ export async function isUserEnrolledController(req, res) {
   }
   try {
     const result = await isUserEnrolled({ user_id, course_id });
-      return res.status(200).json({result});
+    return res.status(200).json({ result });
   } catch (err) {
     console.error("Can't get the course", err);
     res.status(500).json({
@@ -96,22 +109,18 @@ export async function isUserEnrolledController(req, res) {
     });
   }
 }
-
-
 
 export async function getAllEnrollmentsController(req, res) {
   try {
     const result = await getAllEnrollments();
-    return res.status(200).json({result})
+    return res.status(200).json({ result });
   } catch (err) {
     console.error("Can't get the course", err);
     res.status(500).json({
       message: "Failed to get course. Please try again later.",
     });
   }
-
 }
-
 
 export async function getCourseEnrollmentsController(req, res) {
   const course_id = Number(req.params.course_id);

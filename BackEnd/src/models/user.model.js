@@ -40,16 +40,19 @@ export async function createUser(userInfo) {
 //update User
 export async function updateUser(userInfo) {
   try {
-    const hashedPassword = await bcrypt.hash(
-      userInfo.password,
-      Number(process.env.BCRYPT_SALT_ROUNDS)
-    );
+    let hashedPassword = null;
+    if (userInfo.password) {
+       hashedPassword = await bcrypt.hash(
+        userInfo.password,
+        Number(process.env.BCRYPT_SALT_ROUNDS)
+      );
+    }
     const result = await query(
       `UPDATE users 
        SET name = $1, 
            email = $2, 
            password_hash = $3, 
-           role = $4
+           role = $4,
            avatar = $5
        WHERE id = $6
        RETURNING *`,

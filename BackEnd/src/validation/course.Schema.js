@@ -10,19 +10,14 @@ export const CourseSchema = Joi.object({
       "string.pattern.base":
         "Title can only contain letters, numbers, and basic punctuation.",
     }),
-  description: Joi.string().min(10).max(500).required().messages({
+  description: Joi.string().min(10).max(2000).required().messages({
     "string.min": "Description should be at least 10 characters.",
   }),
-  price: Joi.number().min(0).max(10000).precision(2).required().messages({
-    "number.min": "Price cannot be negative.",
-    "number.max": "Price cannot exceed $10,000.",
-  }),
+  instructor_id: Joi.number().integer().required(),
+  category_id: Joi.number().integer().allow(null),
   thumbnail_url: Joi.string().uri().required().messages({
     "string.uri": "Thumbnail URL must be a valid URL.",
   }),
   is_approved: Joi.boolean().default(false),
   is_published: Joi.boolean().default(false),
-  created_at: Joi.date().default(() => new Date()),
-  updated_at: Joi.date().default(() => new Date()),
-  instructor_id: Joi.number().integer().required(), // for now
 });

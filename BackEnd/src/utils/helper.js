@@ -4,11 +4,11 @@ export const sanitizedUser = (user) => {
   return { id, email, avatar, oauth_provider, oauth_id, is_active, created_at };
 };
 
-
 // Generate random string
 export const generateRandomString = (length = 32) => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -28,6 +28,6 @@ export const createResponse = (success, message, data = null, error = null) => {
     message,
     data,
     error,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   };
 };
