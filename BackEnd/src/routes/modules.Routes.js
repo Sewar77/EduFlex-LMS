@@ -33,7 +33,9 @@ modulesRouter.get(
   authenticateJWT,
   getAllModulesController
 );
+
 modulesRouter.get("/modules/:id", authenticateJWT, getModuleByIdController);
+
 modulesRouter.delete(
   "/modules/:id",
   authenticateJWT,
