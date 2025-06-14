@@ -4,6 +4,7 @@ import {
   getCategoryById,
   updateCategory,
   deleteCategory,
+  getCoursesByCategoryId,
 } from "../models/category.models.js";
 
 // Create category
@@ -136,6 +137,33 @@ export async function deleteCategoryController(req, res) {
     res.status(500).json({
       success: false,
       message: "Failed to delete category. Please try again later.",
+    });
+  }
+}
+
+
+export async function getCoursesInCategoryController(req, res) {
+  const categoryId = Number(req.params.id);
+
+  if (!Number.isInteger(categoryId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid category ID" });
+  }
+
+  try {
+    const courses = await getCoursesByCategoryId(categoryId);
+
+    return res.status(200).json({
+      success: true,
+      data: courses,
+    });
+  } catch (err) {
+    console.error("Failed to get courses in category:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch courses",
+      error: err.message,
     });
   }
 }

@@ -98,3 +98,33 @@ export async function deleteCategory(category_id) {
     throw err;
   }
 }
+
+
+
+// Get all courses in a category
+export async function getCoursesByCategoryId(category_id) {
+  if (!Number.isInteger(category_id)) {
+    throw new Error("Invalid category ID");
+  }
+
+  try {
+    const result = await query(
+      `
+      SELECT 
+        c.*,
+        u.name AS instructor_name,
+        cat.name AS category_name
+      FROM courses c
+      LEFT JOIN users u ON c.instructor_id = u.id
+      LEFT JOIN categories cat ON c.category_id = cat.id
+      WHERE c.category_id = $1
+      ORDER BY c.created_at DESC
+      `,
+      [category_id]
+    );
+    return result.rows;
+  } catch (err) {
+    console.error("Error fetching category courses:", err);
+    throw err;
+  }
+}
