@@ -7,6 +7,7 @@ import {
   getCategoryByIdController,
   updateCategoryController,
   deleteCategoryController,
+  getCoursesInCategoryController,
 } from "../controllers/category.controller.js";
 
 const categoryRouter = express.Router();
@@ -27,6 +28,12 @@ categoryRouter.get(
   "/categories/:id",
   authenticateJWT,
   getCategoryByIdController
+);
+
+categoryRouter.get(
+  "/categories/:id/courses",
+  authenticateJWT,
+  getCoursesInCategoryController
 );
 
 // Update category
