@@ -62,15 +62,20 @@ export async function unenrollCourseController(req, res) {
 }
 
 export async function getUserEnrollmentsControllers(req, res) {
-  const user_id = Number(req.user.user_id);
+  const user_id = req.user?.id;
+
   if (!Number.isInteger(user_id)) {
-    return res.status(400).json({ message: "invalid user id" });
+    console.log("user enroll invalid: ", user_id);
+    return res.status(400).json({ message: "invalid user id enroll " });
   }
+
   try {
     const result = await getUserEnrollments(user_id);
+
     if (result === false) {
       return res.status(200).json({ message: "there is no enrolments" });
     }
+
     const mappedResult = result.map((row) => ({
       course: {
         _id: row.course_id,
@@ -84,7 +89,7 @@ export async function getUserEnrollmentsControllers(req, res) {
       progress: row.progress || 0,
     }));
 
-    res.status(200).json({ result: mappedResult });
+    return res.status(200).json({ result: mappedResult });
   } catch (err) {
     console.error("Can't get courses:", err);
     res.status(500).json({

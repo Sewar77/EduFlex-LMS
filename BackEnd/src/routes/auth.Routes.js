@@ -23,7 +23,7 @@ authRouter.post("/refresh-token", refreshToken);
 // Current user info & logout
 
 authRouter.get("/me", authenticateJWT, getCurrentLogInInfo);
-authRouter.get("/logout", authenticateJWT, logout);
+authRouter.post("/logout", authenticateJWT, logout);
 
 // Google OAuth
 authRouter.get("/google", googleAuth);

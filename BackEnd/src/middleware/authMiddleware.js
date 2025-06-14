@@ -23,7 +23,9 @@ export const authenticateJWT = async (req, res, next) => {
 
     // Get user with token version check
     const user = await getUserById(decoded.id);
-    if (!user || user.tokenVersion !== (decoded.tokenVersion || 0)) {
+    const decodedTokenVersion = decoded.tokenVersion ?? 0;
+
+    if (!user || (user.tokenVersion ?? 0) !== decodedTokenVersion) {
       return res.status(401).json({
         success: false,
         message: "Invalid token - user not found or token revoked",
@@ -35,12 +37,14 @@ export const authenticateJWT = async (req, res, next) => {
       id: user.id,
       email: user.email,
       role: user.role,
-      tokenVersion: user.tokenVersion,
+      tokenVersion: user.tokenVersion ?? 0,
     };
+    console.log("Decoded token:", decoded);
+    console.log("User attached to req:", req.user);
 
     next();
   } catch (error) {
-    console.error("JWT Authentication Error:", error.name);
+    console.error("JWT Authentication Error:", error);
 
     const response = {
       success: false,
@@ -67,7 +71,6 @@ export const optionalJWT = async (req, res, next) => {
   try {
     let token = null;
 
-    // Check cookies first, then headers
     if (req.cookies && req.cookies.accessToken) {
       token = req.cookies.accessToken;
     } else {
@@ -96,14 +99,12 @@ export const optionalJWT = async (req, res, next) => {
           };
         }
       } catch (error) {
-        // Silently fail for optional auth
         console.log("Optional JWT failed:", error.message);
       }
     }
 
     next();
   } catch (error) {
-    // Continue without authentication
     next();
   }
 };
@@ -129,7 +130,6 @@ export const isAuthenticated = (req, res, next) => {
 // Legacy token authentication (for backwards compatibility)
 export const authenticateToken = async (req, res, next) => {
   try {
-    // Check session first
     if (req.session && req.session.authenticated && req.session.userId) {
       const user = await getUserById(req.session.userId);
       if (user && user.is_active) {
@@ -138,7 +138,6 @@ export const authenticateToken = async (req, res, next) => {
       }
     }
 
-    // Check cookie token
     const token = req.cookies.token || req.cookies.accessToken;
     if (!token) {
       return res
@@ -157,7 +156,6 @@ export const authenticateToken = async (req, res, next) => {
       return res.status(401).json(createResponse(false, "Account deactivated"));
     }
 
-    // Renew session
     if (req.session) {
       req.session.userId = user.id;
       req.session.authenticated = true;
