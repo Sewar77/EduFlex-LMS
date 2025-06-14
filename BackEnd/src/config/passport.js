@@ -64,16 +64,12 @@ passport.use(
 
 // Secure session serialization
 passport.serializeUser((user, done) => {
-  done(null, {
-    id: user.id,
-    role: user.role,
-  });
+  done(null, user.id); // Just pass the ID!
 });
 
-// Deserialize with enhanced error handling
-passport.deserializeUser(async (serializedUser, done) => {
+passport.deserializeUser(async (id, done) => {
   try {
-    const user = await getUserById(serializedUser.id);
+    const user = await getUserById(id);
     if (!user) throw new Error("User not found");
     done(null, user);
   } catch (err) {

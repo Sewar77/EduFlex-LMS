@@ -49,7 +49,6 @@ export async function unenrollCourse({ user_id, course_id }) {
 }
 
 //get user enrollments
-// getUserEnrollments(user_id)
 export async function getUserEnrollments(user_id) {
   try {
     if (Number.isInteger(user_id)) {

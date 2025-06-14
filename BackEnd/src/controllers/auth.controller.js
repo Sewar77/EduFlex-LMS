@@ -322,7 +322,7 @@ export async function Login(req, res, next) {
         },
         message: "Login successful",
       };
-      console.log("🧠 DB user after login:", responseData); 
+      console.log("🧠 DB user after login:", responseData);
       res.json(responseData);
     });
   } catch (err) {
@@ -333,13 +333,14 @@ export async function Login(req, res, next) {
 
 export async function getCurrentLogInInfo(req, res, next) {
   try {
+    console.log("loged in req ", req.user);
     if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
         message: "User not authenticated",
       });
     }
-
+    console.log("loged in 2 req", req.user);
     const user = await getUserById(req.user.id);
     if (!user) {
       return res.status(404).json({
@@ -347,12 +348,18 @@ export async function getCurrentLogInInfo(req, res, next) {
         message: "User not found",
       });
     }
+    console.log("loged in  3 ", req.user);
+    
 
-    // Remove password_hash from response
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Surrogate-Control", "no-store");
+
     const { password_hash, ...sanitizedUser } = user;
-console.log("🔍 Inside /me - req.cookies:", req.cookies);
-console.log("🔍 DB user:", user);
-
     res.json({
       success: true,
       user: sanitizedUser,
