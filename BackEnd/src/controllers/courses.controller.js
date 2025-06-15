@@ -5,6 +5,7 @@ import {
   getAllCourses,
   getCourseById,
   searchCourses,
+  getLatestCourses,
 } from "../models/course.model.js";
 
 // Create course
@@ -49,7 +50,7 @@ export async function createCourseController(req, res) {
 export async function updateCourseController(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
-    return res.status(400).json({ message: "Invalid course ID." });
+    return res.status(400).json({ message: "Invalid course ID..." });
   }
 
   try {
@@ -97,7 +98,7 @@ export async function updateCourseController(req, res) {
 export async function deleteCourseController(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
-    return res.status(400).json({ message: "Invalid course ID." });
+    return res.status(400).json({ message: "Invalid course ID.." });
   }
 
   try {
@@ -149,7 +150,7 @@ export async function getCourseByIdController(req, res) {
   if (!Number.isInteger(id)) {
     return res.status(400).json({ 
       success: false,
-      message: "Invalid course ID" 
+      message: "Invalid course ID...." 
     });
   }
   try {
@@ -177,10 +178,10 @@ export async function getCourseByIdController(req, res) {
 // Search courses
 export async function searchCoursesController(req, res) {
   const { keyword } = req.query;
-  if (!keyword || keyword.trim() === '') {
-    return res.status(400).json({ 
+  if (!keyword || keyword.trim() === "") {
+    return res.status(400).json({
       success: false,
-      message: "Search keyword is required" 
+      message: "Search keyword is required",
     });
   }
   try {
@@ -188,14 +189,14 @@ export async function searchCoursesController(req, res) {
     return res.status(200).json({
       success: true,
       count: courses.length,
-      data: courses
+      data: courses,
     });
   } catch (err) {
     console.error("Error searching courses:", err);
     res.status(500).json({
       success: false,
       message: "Failed to search courses",
-      error: err.message
+      error: err.message,
     });
   }
 }
@@ -249,3 +250,15 @@ export async function getCoursesByStatusController(req, res) {
     });
   }
 }
+
+
+
+export const getRecommendedCourses = async (req, res) => {
+  try {
+    const courses = await getLatestCourses();
+    res.status(200).json({ success: true, courses });
+  } catch (error) {
+    console.error("Error in getRecommendedCourses:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

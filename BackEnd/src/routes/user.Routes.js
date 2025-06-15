@@ -3,6 +3,7 @@ import { validateBody } from "../middleware/validateBody.js";
 import { UserSchema } from "../validation/user.Schema.js";
 import { ChangePasswordSchema } from "../validation/changePassword.Schema.js";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
+
 import {
   createUserController,
   updateUserController,
@@ -10,6 +11,8 @@ import {
   getAllUsersController,
   getUserByIdController,
   changeUserPasswordController,
+  getProfile,
+  updateProfile
 } from "../controllers/user.controller.js";
 
 const userRouter = express.Router();
@@ -24,10 +27,19 @@ userRouter.put(
   validateBody(UserSchema),
   updateUserController
 );
+
+userRouter.get("/profile", authenticateJWT, getProfile);
+userRouter.put("/profile", authenticateJWT, updateProfile);
+
+
+
+
 userRouter.delete("/users/:id", authenticateJWT, deleteUserController);
+
+
 userRouter.put(
-  "/users/:id/password",
-  authenticateJWT, // <-- Add this!
+  "/user/change-password",
+  authenticateJWT,
   validateBody(ChangePasswordSchema),
   changeUserPasswordController
 );
