@@ -55,9 +55,7 @@ app.use(
 // FIXED: Simplified CORS configuration for localhost development
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-    ],
+    origin: ["http://localhost:3000"],
     credentials: true, // CRITICAL: Allow cookies
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
@@ -68,8 +66,11 @@ app.use(
       "Origin",
       "Cookie",
     ],
+    secure: true, // ❗ required when SameSite is None
+    sameSite: "None",
     exposedHeaders: ["Set-Cookie"],
     preflightContinue: false,
+    maxAge: 3600000,
     optionsSuccessStatus: 204,
   })
 );

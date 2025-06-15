@@ -9,10 +9,12 @@ import {
 
 //user enroll course
 export async function enrollCourseController(req, res) {
-  const user_id = Number(req.params.user_id);
+  const user_id = Number(req.user.id);
   const course_id = Number(req.params.course_id);
+  console.log("req.user.id:", req.user.id);
+  console.log("req.params.course_id:", req.params.course_id);
   if (!Number.isInteger(user_id) || !Number.isInteger(course_id)) {
-    return res.status(400).json({ message: "Invalid user id" });
+    return res.status(400).json({ message: "Invalid user id model " });
   }
   try {
     const result = await enrollCourse({ user_id, course_id });
@@ -37,7 +39,7 @@ export async function enrollCourseController(req, res) {
 
 //user enroll course
 export async function unenrollCourseController(req, res) {
-  const user_id = Number(req.params.user_id);
+  const user_id = Number(req.user.id);
   const course_id = Number(req.params.course_id);
   if (!Number.isInteger(user_id) || !Number.isInteger(course_id)) {
     return res.status(400).json({ message: "invalid user id" });

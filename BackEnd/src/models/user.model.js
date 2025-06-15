@@ -110,7 +110,7 @@ export async function getUserById(id) {
     const userId = Number(id);
     if (Number.isInteger(userId) && userId > 0) {
       const result = await query(
-        "SELECT id, email, name, role, is_active, avatar FROM users WHERE id = $1",
+        "SELECT id, email,password_hash, name, role, is_active, avatar FROM users WHERE id = $1",
         [userId]
       );
       if (!result.rows[0]) {
@@ -135,6 +135,7 @@ export async function getUserByEmail(email) {
     throw err;
   }
 }
+
 export async function changeUserPassword({ user_id, newPassword }) {
   try {
     const hashedPassword = await bcrypt.hash(
@@ -162,6 +163,91 @@ export async function getUserbyGoogleId(id) {
       return null;
     }
     return googleId.rows[0];
+  } catch (err) {
+    console.error(err.message);
+    throw err;
+  }
+}
+
+
+export async function getUserProfileById(userId) {
+  try {
+    // Fetch basic user info
+    const userQuery = `
+      SELECT id, email, name, role, is_active, avatar
+      FROM users WHERE id = $1
+    `;
+    const userResult = await query(userQuery, [userId]);
+    const user = userResult.rows[0];
+    if (!user) return null;
+
+    // Fetch enrolled courses with instructor name
+    const coursesQuery = `
+      SELECT c.id, c.title, c.thumbnail_url,
+             u.name AS instructor_name,
+             e.progress
+      FROM enrollments e
+      JOIN courses c ON e.course_id = c.id
+      JOIN users u ON c.instructor_id = u.id
+      WHERE e.user_id = $1
+    `;
+    const coursesResult = await query(coursesQuery, [userId]);
+    user.enrolledCourses = coursesResult.rows || [];
+
+    return user;
+  } catch (err) {
+    console.error(err.message);
+    throw err;
+  }
+}
+
+
+// Update profile fields and optionally password
+export async function updateUserProfile(userId, updateData) {
+  try {
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    if (updateData.name) {
+      fields.push(`name = $${idx++}`);
+      values.push(updateData.name);
+    }
+    if (updateData.email) {
+      fields.push(`email = $${idx++}`);
+      values.push(updateData.email);
+    }
+    if (updateData.avatar !== undefined) {
+      fields.push(`avatar = $${idx++}`);
+      values.push(updateData.avatar);
+    }
+
+    if (fields.length === 0 && !updateData.password) {
+      // Nothing to update except maybe password
+      if (!updateData.password) return null;
+    }
+
+    if (updateData.password) {
+      const hashedPassword = await bcrypt.hash(
+        updateData.password,
+        Number(process.env.BCRYPT_SALT_ROUNDS)
+      );
+      fields.push(`password_hash = $${idx++}`);
+      values.push(hashedPassword);
+    }
+
+    if (fields.length === 0) return null;
+
+    values.push(userId);
+
+    const queryText = `
+      UPDATE users SET ${fields.join(", ")}
+      WHERE id = $${idx}
+      RETURNING id, email, name, role, is_active, avatar
+    `;
+
+    const result = await query(queryText, values);
+    return result.rows[0] || null;
   } catch (err) {
     console.error(err.message);
     throw err;

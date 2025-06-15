@@ -12,6 +12,7 @@ import {
   searchCoursesController,
   getCoursesByCategoryController,
   getCoursesByStatusController,
+  getRecommendedCourses,
 } from "../controllers/courses.controller.js";
 
 const coursesRouter = express.Router();
@@ -40,13 +41,30 @@ coursesRouter.delete(
   deleteCourseController
 );
 
-// Course retrieval routes
-coursesRouter.get("/course", getAllCoursesController);
-coursesRouter.get("/course/:id", getCourseByIdController);
-
 // Search and filtered routes
 coursesRouter.get("/course/search", searchCoursesController); // Now uses query params
-coursesRouter.get("/course/category/:categoryId", getCoursesByCategoryController);
-coursesRouter.get("/course/status/filter", getCoursesByStatusController); // Uses query params for is_published and is_approved
+
+// Course retrieval routes
+coursesRouter.get("/course", authenticateJWT, getAllCoursesController);
+
+coursesRouter.get(
+  "/course/recommended",
+  authenticateJWT,
+  getRecommendedCourses
+);
+
+coursesRouter.get("/course/:id", authenticateJWT, getCourseByIdController);
+
+
+coursesRouter.get(
+  "/course/category/:categoryId",
+  authenticateJWT,
+  getCoursesByCategoryController
+);
+coursesRouter.get(
+  "/course/status/filter",
+  authenticateJWT,
+  getCoursesByStatusController
+); // Uses query params for is_published and is_approved
 
 export default coursesRouter;
