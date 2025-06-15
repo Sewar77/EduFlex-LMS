@@ -128,12 +128,12 @@ export async function searchCourses(keyword) {
          c.*,
          u.name as instructor_name,
          cat.name as category_name
-       FROM courses c
-       LEFT JOIN users u ON c.instructor_id = u.id
-       LEFT JOIN categories cat ON c.category_id = cat.id
-       WHERE LOWER(c.title) LIKE $1
-       OR LOWER(c.description) LIKE $1
-       ORDER BY c.created_at DESC`,
+          FROM courses c
+          LEFT JOIN users u ON c.instructor_id = u.id
+          LEFT JOIN categories cat ON c.category_id = cat.id
+          WHERE LOWER(c.title) LIKE $1
+          OR LOWER(c.description) LIKE $1
+          ORDER BY c.created_at DESC`,
       [`%${keyword.toLowerCase()}%`]
     );
     return result.rows;
@@ -184,3 +184,24 @@ export async function getCoursesByStatus(isPublished, isApproved) {
     throw err;
   }
 }
+
+export const getLatestCourses = async (limit = 6) => {
+  try {
+    const result = await query(
+      `SELECT 
+         c.*, 
+         u.name AS instructor_name,
+         cat.name AS category_name
+       FROM courses c
+       LEFT JOIN users u ON c.instructor_id = u.id
+       LEFT JOIN categories cat ON c.category_id = cat.id
+       ORDER BY c.created_at DESC
+       LIMIT $1`,
+      [limit]
+    );
+    return result.rows;
+  } catch (err) {
+    console.error("Error fetching latest courses:", err);
+    throw err;
+  }
+};

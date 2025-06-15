@@ -7,7 +7,10 @@ import {
   changeUserPassword,
   getUserByEmail,
   getUserbyGoogleId,
+  getUserProfileById,
+  updateUserProfile,
 } from "../models/user.model.js";
+import { verifyPassword } from "../utils/auth.js";
 
 //1-create user
 export async function createUserController(req, res) {
@@ -110,20 +113,27 @@ export async function getUserByIdController(req, res) {
 }
 
 export async function changeUserPasswordController(req, res) {
-  const { email, currentPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user.id;
+
   try {
-    const user = await getUserByEmail(email);
+    const user = await getUserById(userId); 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    console.log("Stored hash:", user.password_hash);
+    console.log("Input password:", currentPassword);
+
     const isMatch = await verifyPassword(currentPassword, user.password_hash);
     if (!isMatch) {
       return res.status(400).json({ message: "Current password is incorrect" });
     }
+
     const updatedUser = await changeUserPassword({
       user_id: user.id,
       newPassword,
     });
+
     if (!updatedUser) {
       return res.status(500).json({ message: "Failed to update password" });
     }
@@ -174,3 +184,35 @@ export async function getUserbyGoogleIdController(req, res) {
 //       .json({ message: "Failed to get user. Please try again later." });
 //   }
 // }
+
+export async function getProfile(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await getUserProfileById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+  } catch (error) {
+    console.error("Get profile error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+}
+
+export async function updateProfile(req, res) {
+  try {
+    const userId = req.user.id;
+    const updateData = req.body;
+
+    // Optionally, validate password strength if updateData.password is present
+
+    const updatedUser = await updateUserProfile(userId, updateData);
+    if (!updatedUser) {
+      return res.status(400).json({ message: "No valid fields to update" });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Update profile error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+}
