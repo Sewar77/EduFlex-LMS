@@ -11,40 +11,44 @@ import {
 // Create course
 export async function createCourseController(req, res) {
   try {
-    const {
-      title,
-      description,
-      instructor_id,
-      category_id,
-      thumbnail_url,
-      is_published = false,
-      is_approved = false,
-    } = { ...req.body };
-
-    if (!title || !description || !instructor_id) {
-      return res.status(400).json({ message: "Required fields are missing." });
-    }
+    const instructorId = req.user.id; // extracted from JWT middleware
+    const { title, description, category_id, thumbnail_url } = req.body;
 
     const courseInfo = {
       title,
       description,
-      instructor_id,
+      instructor_id: instructorId, // updated here
       category_id,
       thumbnail_url,
-      is_published,
-      is_approved,
+      is_published: false,
+      is_approved: false,
     };
 
-    const createdCourse = await createCourse(courseInfo);
-    return res.status(201).json(createdCourse);
-  } catch (err) {
-    console.error("Error creating course:", err);
+    const result = await createCourse(courseInfo);
+
+    if (result) {
+      return res.status(201).json({
+        success: true,
+        message: "Course created successfully.",
+        data: result,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Cannot create course.",
+    });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({
+      success: false,
       message: "Failed to create course. Please try again later.",
-      error: err.message,
     });
   }
 }
+
+
+
 
 // Update course
 export async function updateCourseController(req, res) {
