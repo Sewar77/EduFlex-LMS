@@ -21,7 +21,7 @@ const coursesRouter = express.Router();
 coursesRouter.post(
   "/course",
   authenticateJWT,
-  requireRole("instructor", "admin"),
+  // requireRole("instructor", "admin"),
   validateBody(CourseSchema),
   createCourseController
 );

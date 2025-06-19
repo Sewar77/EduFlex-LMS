@@ -4,7 +4,10 @@ import {
   getLessonById,
   updateLesson,
   deleteLesson,
+  getLessonContent,
 } from "../models/lessons.model.js";
+import { getQuizById } from "../models/quizzes.models.js";
+import { getAssignmentById } from "../models/assignments.models.js";
 
 // Create lesson
 export async function createLessonController(req, res) {
@@ -121,7 +124,7 @@ import { isLessonCompleted } from "../models/lesson_completion.model.js";
 
 export async function getLessonByIdController(req, res) {
   const lesson_id = Number(req.params.lessonId);
-  const user_id = req.user?.id; // Make sure your auth middleware runs before this
+  const user_id = req.user?.id; // Ensure auth middleware runs before this
 
   if (!Number.isInteger(lesson_id)) {
     return res.status(400).json({
@@ -139,24 +142,71 @@ export async function getLessonByIdController(req, res) {
       });
     }
 
-    // 💡 Check completion only if user exists
     const completed = user_id
       ? await isLessonCompleted(user_id, lesson_id)
       : false;
 
-    res.status(200).json({
+    const content = await getLessonContent(lesson); // 👈 Includes text, video, quiz, or assignment content
+
+    return res.status(200).json({
       success: true,
       data: {
         ...lesson,
-        completed, // ✅ Include this in the response
+        completed,
+        content,
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
+    console.error("Error fetching lesson by ID:", err);
+    return res.status(500).json({
       success: false,
       message: "Failed to get lesson data",
     });
   }
 }
 
+
+export async function getLessonContentController(req, res) {
+  const lessonId = Number(req.params.lessonId);
+  if (!Number.isInteger(lessonId)) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid lesson ID" });
+  }
+  try {
+    // 1. Get lesson (with text/video content info)
+    const lesson = await getLessonById(lessonId);
+    if (!lesson) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Lesson not found" });
+    }
+
+    // 2. Get quizzes for lesson
+    const quizzes = await getQuizById(lessonId);
+
+    // 3. Get assignments for lesson
+    const assignments = await getAssignmentById(lessonId);
+
+    // Compose response data
+    const content = {
+      lessonContent: {
+        content_type: lesson.content_type,
+        content_url: lesson.content_url,
+        title: lesson.title,
+        duration: lesson.duration,
+        // include other lesson fields if needed
+      },
+      quizzes,
+      assignments,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: content,
+    });
+  } catch (err) {
+    console.error("Failed to get lesson content:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+}

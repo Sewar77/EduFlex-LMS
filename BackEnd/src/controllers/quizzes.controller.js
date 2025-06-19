@@ -10,27 +10,41 @@ import {
 // Create quiz
 export async function createQuizController(req, res) {
   try {
-    const quizInfo = { ...req.body };
-    const result = await createQuiz(quizInfo);
-    if (result) {
-      return res.status(201).json({
-        success: true,
-        message: "Quiz created successfully.",
-        data: result,
+    const { lesson_id, quizzes } = req.body;
+    if (!Array.isArray(quizzes) || quizzes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Quiz questions are required.",
       });
     }
-    return res.status(400).json({
-      success: false,
-      message: "Cannot create quiz.",
+
+    const inserted = [];
+
+    for (const quiz of quizzes) {
+      const result = await createQuiz({
+        lesson_id,
+        question: quiz.question,
+        options: quiz.options,
+        correct_answer: quiz.correct_answer,
+        max_score: quiz.max_score ?? 10,
+      });
+      if (result) inserted.push(result);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "All quiz questions added.",
+      data: inserted,
     });
   } catch (err) {
-    console.error("Can't create quiz:", err);
+    console.error("Can't create quizzes:", err);
     res.status(500).json({
       success: false,
-      message: "Failed to create quiz. Please try again later.",
+      message: "Failed to create quiz questions.",
     });
   }
 }
+
 
 // Get quiz by ID
 export async function getQuizByIdController(req, res) {

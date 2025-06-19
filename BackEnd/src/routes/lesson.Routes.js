@@ -9,6 +9,7 @@ import {
   getAllLessonsForModuleController,
   getLessonByIdController,
   updateLessonController,
+  getLessonContentController
 } from "../controllers/lessons.controller.js";
 
 const lessonRouter = express.Router();
@@ -52,5 +53,14 @@ lessonRouter.delete(
   requireRole("instructor", "admin"),
   deleteLessonController
 );
+
+
+lessonRouter.get(
+  "/lessons/:lessonId/content",
+  authenticateJWT,
+  requireRole("instructor", "admin", "student"),
+  getLessonContentController
+);
+
 
 export default lessonRouter;

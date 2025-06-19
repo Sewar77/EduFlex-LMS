@@ -146,14 +146,38 @@ export async function getLessonById(lesson_id) {
 
 
 
+// Get full content for a lesson by its content_type
+export async function getLessonContent(lesson) {
+  const { content_type, content_url } = lesson;
 
+  switch (content_type) {
+    case "text":
+      return { type: "text", content: content_url };
 
+    case "video":
+      return { type: "video", url: content_url };
 
+    case "quiz": {
+      const quizId = Number(content_url); // Assuming content_url is quizId
+      const result = await query(
+        "SELECT id, question, options FROM quizzes WHERE lesson_id = $1",
+        [lesson.id]
+      );
+      return { type: "quiz", questions: result.rows };
+    }
 
+    case "assignment": {
+      const result = await query(
+        "SELECT id, title, description, due_date FROM assignments WHERE lesson_id = $1",
+        [lesson.id]
+      );
+      return { type: "assignment", ...result.rows[0] };
+    }
 
-
-
-
+    default:
+      return null;
+  }
+}
 
 
 
