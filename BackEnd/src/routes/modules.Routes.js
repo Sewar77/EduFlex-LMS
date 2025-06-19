@@ -28,6 +28,7 @@ modulesRouter.put(
   validateBody(ModuleSchema),
   updateModuleController
 );
+
 modulesRouter.get(
   "/courses/:course_id/modules",
   authenticateJWT,

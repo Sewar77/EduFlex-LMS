@@ -9,6 +9,7 @@ import {
   getAllQuizzesForLessonController,
   updateQuizController,
   deleteQuizController,
+  submitQuiz
 } from "../controllers/quizzes.controller.js";
 
 const quizRouter = express.Router();
@@ -48,5 +49,16 @@ quizRouter.delete(
   requireRole("instructor", "admin"),
   deleteQuizController
 );
+
+
+quizRouter.post(
+  "/lessons/:lessonId/quizzes/submit",
+  authenticateJWT,
+  submitQuiz
+);
+
+
+
+
 
 export default quizRouter;

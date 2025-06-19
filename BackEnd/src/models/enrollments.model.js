@@ -125,3 +125,47 @@ export async function getCourseEnrollments(course_id) {
     throw err;
   }
 }
+
+
+
+
+
+export async function updateEnrollmentProgress(user_id, course_id) {
+  // Total lessons in this course
+  const totalLessonsResult = await query(
+    `
+    SELECT COUNT(*) FROM lessons l
+    JOIN modules m ON l.module_id = m.id
+    WHERE m.course_id = $1
+  `,
+    [course_id]
+  );
+
+  const total = parseInt(totalLessonsResult.rows[0].count, 10);
+
+  // Completed lessons by this user
+  const completedLessonsResult = await query(
+    `
+    SELECT COUNT(*) FROM lesson_completions lc
+    JOIN lessons l ON lc.lesson_id = l.id
+    JOIN modules m ON l.module_id = m.id
+    WHERE lc.user_id = $1 AND m.course_id = $2
+  `,
+    [user_id, course_id]
+  );
+
+  const completed = parseInt(completedLessonsResult.rows[0].count, 10);
+  const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+  await query(
+    `
+    UPDATE enrollments
+    SET progress = $1,
+        completed_at = CASE WHEN $1 >= 100 THEN CURRENT_TIMESTAMP ELSE completed_at END
+    WHERE user_id = $2 AND course_id = $3
+  `,
+    [progress, user_id, course_id]
+  );
+
+  return progress;
+}

@@ -30,7 +30,11 @@ lessonRouter.get(
 );
 
 // Get lesson by ID
-lessonRouter.get("/lessons/:id", authenticateJWT, getLessonByIdController);
+lessonRouter.get(
+  "/lessons/:lessonId",
+  authenticateJWT,
+  getLessonByIdController
+);
 
 // Update lesson
 lessonRouter.put(

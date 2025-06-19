@@ -25,7 +25,7 @@ authRouter.post("/refresh-token", refreshToken);
 authRouter.get("/me", authenticateJWT, getCurrentLogInInfo);
 authRouter.post("/logout", authenticateJWT, logout);
 
-// Google OAuth
+// Google OAuth 
 authRouter.get("/google", googleAuth);
 // In your auth routes
 authRouter.get("/google/callback", googleCallBack, (req, res) => {
