@@ -128,12 +128,11 @@ export async function searchCourses(keyword) {
          c.*,
          u.name as instructor_name,
          cat.name as category_name
-          FROM courses c
-          LEFT JOIN users u ON c.instructor_id = u.id
-          LEFT JOIN categories cat ON c.category_id = cat.id
-          WHERE LOWER(c.title) LIKE $1
-          OR LOWER(c.description) LIKE $1
-          ORDER BY c.created_at DESC`,
+       FROM courses c
+       LEFT JOIN users u ON c.instructor_id = u.id
+       LEFT JOIN categories cat ON c.category_id = cat.id
+       WHERE LOWER(c.title) LIKE $1
+       ORDER BY c.created_at DESC`,
       [`%${keyword.toLowerCase()}%`]
     );
     return result.rows;
@@ -142,6 +141,7 @@ export async function searchCourses(keyword) {
     throw err;
   }
 }
+
 
 export async function getCoursesByCategory(categoryId) {
   try {
@@ -185,7 +185,7 @@ export async function getCoursesByStatus(isPublished, isApproved) {
   }
 }
 
-export const getLatestCourses = async (limit = 6) => {
+export const getLatestCourses = async (limit = 8) => {
   try {
     const result = await query(
       `SELECT 

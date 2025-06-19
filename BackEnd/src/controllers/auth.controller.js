@@ -349,7 +349,6 @@ export async function getCurrentLogInInfo(req, res, next) {
       });
     }
     console.log("loged in  3 ", req.user);
-    
 
     res.setHeader(
       "Cache-Control",
@@ -369,29 +368,43 @@ export async function getCurrentLogInInfo(req, res, next) {
   }
 }
 
-export async function logout(req, res, next) {
+export async function logout(req, res) {
   try {
-    // Destroy session if exists
-    if (req.session) {
-      req.session.destroy((err) => {
-        if (err) {
-          return next(err);
-        }
-        // Clear cookies
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
-        res.json({ success: true, message: "Logged out successfully" });
-      });
-    } else {
-      // Clear cookies even if no session
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
-      res.json({ success: true, message: "Logged out successfully" });
-    }
+    const cookieOptions = {
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    };
+
+    // Clear both access and refresh token cookies
+   res.clearCookie("accessToken", {
+     path: "/", // Must match cookie settings
+     httpOnly: true,
+     secure: process.env.NODE_ENV === "production", // true only in prod
+     sameSite: "strict",
+   });
+   res.clearCookie("refreshToken", {
+     path: "/",
+     httpOnly: true,
+     secure: process.env.NODE_ENV === "production",
+     sameSite: "strict",
+   });
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
   } catch (err) {
-    next(err);
+    console.error("Logout error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Logout failed",
+    });
   }
 }
+
 
 export async function getCurrentUser(req, res) {
   try {

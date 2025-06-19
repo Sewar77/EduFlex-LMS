@@ -117,32 +117,46 @@ export async function getAllLessonsForModuleController(req, res) {
   }
 }
 
-// Get lesson by ID
+import { isLessonCompleted } from "../models/lesson_completion.model.js";
+
 export async function getLessonByIdController(req, res) {
-  const lesson_id = Number(req.params.id);
+  const lesson_id = Number(req.params.lessonId);
+  const user_id = req.user?.id; // Make sure your auth middleware runs before this
+
   if (!Number.isInteger(lesson_id)) {
     return res.status(400).json({
       success: false,
       message: "Invalid lesson ID",
     });
   }
+
   try {
-    const result = await getLessonById(lesson_id);
-    if (result) {
-      return res.status(200).json({
-        success: true,
-        data: result,
+    const lesson = await getLessonById(lesson_id);
+    if (!lesson) {
+      return res.status(404).json({
+        success: false,
+        message: "Lesson not found",
       });
     }
-    return res.status(404).json({
-      success: false,
-      message: "Lesson not found.",
+
+    // 💡 Check completion only if user exists
+    const completed = user_id
+      ? await isLessonCompleted(user_id, lesson_id)
+      : false;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        ...lesson,
+        completed, // ✅ Include this in the response
+      },
     });
   } catch (err) {
-    console.error("Can't find lesson:", err);
+    console.error(err);
     res.status(500).json({
       success: false,
-      message: "Failed to find lesson. Please try again later.",
+      message: "Failed to get lesson data",
     });
   }
 }
+

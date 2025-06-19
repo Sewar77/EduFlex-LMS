@@ -45,11 +45,12 @@ export async function getAllModules(course_id) {
   try {
     if (Number.isInteger(course_id)) {
       const allModules = await query(
-        `select course_id, "order", title, description from modules 
-        where course_id = $1 `,
+        `SELECT id, course_id, "order", title, description FROM modules 
+         WHERE course_id = $1
+         ORDER BY "order" ASC`,
         [course_id]
       );
-      return allModules.rows ;
+      return allModules.rows;
     } else {
       throw new Error("Invalid Modules Id");
     }
@@ -57,6 +58,7 @@ export async function getAllModules(course_id) {
     throw err;
   }
 }
+
 
 //get a spacific module by ID
 export async function getModuleById(module_id) {

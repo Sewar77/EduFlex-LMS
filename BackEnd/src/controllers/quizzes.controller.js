@@ -4,6 +4,7 @@ import {
   getAllQuizzesForLesson,
   updateQuiz,
   deleteQuiz,
+  calculateAndSaveAttempt,
 } from "../models/quizzes.models.js";
 
 // Create quiz
@@ -146,3 +147,26 @@ export async function deleteQuizController(req, res) {
     });
   }
 }
+
+
+
+export const submitQuiz = async (req, res) => {
+  const { lessonId } = req.params;
+  const { answers } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const { score, correctAnswers } = await calculateAndSaveAttempt(
+      userId,
+      lessonId,
+      answers
+    );
+    res.json({ success: true, score, correctAnswers }); // ✅ include correctAnswers
+  } catch (error) {
+    console.error("Error submitting quiz:", error);
+    if (error.message === "No quizzes found for this lesson") {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};

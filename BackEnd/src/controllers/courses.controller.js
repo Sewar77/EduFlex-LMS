@@ -256,7 +256,7 @@ export async function getCoursesByStatusController(req, res) {
 export const getRecommendedCourses = async (req, res) => {
   try {
     const courses = await getLatestCourses();
-    res.status(200).json({ success: true, courses });
+    res.status(200).json({ success: true, courses }); // ✅ this must be .json()
   } catch (error) {
     console.error("Error in getRecommendedCourses:", error);
     res.status(500).json({ success: false, message: "Server error" });

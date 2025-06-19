@@ -99,20 +99,45 @@ export async function getAllLessonsForModule(module_id) {
     throw err;
   }
 }
-
-//get lesson by ID
 export async function getLessonById(lesson_id) {
   if (!Number.isInteger(lesson_id)) {
     throw new Error("Invalid Lesson Id");
   }
+
   try {
-    const result = await query(
-      `select id, title, duration, "order", content_url, is_free, content_type, module_id
-        from lessons
-        WHERE id = $1`,
+    // 1. Get current lesson
+    const lessonResult = await query(
+      `SELECT id, title, duration, "order", content_url, is_free, content_type, module_id
+       FROM lessons
+       WHERE id = $1`,
       [lesson_id]
     );
-    return result.rows[0] || null;
+
+    const lesson = lessonResult.rows[0];
+    if (!lesson) return null;
+
+    // 2. Get next lesson
+    const nextResult = await query(
+      `SELECT id FROM lessons
+       WHERE module_id = $1 AND "order" > $2
+       ORDER BY "order" ASC LIMIT 1`,
+      [lesson.module_id, lesson.order]
+    );
+
+    // 3. Get previous lesson
+    const prevResult = await query(
+      `SELECT id FROM lessons
+       WHERE module_id = $1 AND "order" < $2
+       ORDER BY "order" DESC LIMIT 1`,
+      [lesson.module_id, lesson.order]
+    );
+
+    // 4. Attach navigation IDs
+    return {
+      ...lesson,
+      nextLessonId: nextResult.rows[0]?.id || null,
+      prevLessonId: prevResult.rows[0]?.id || null,
+    };
   } catch (err) {
     console.error(err);
     throw err;
