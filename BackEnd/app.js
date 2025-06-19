@@ -19,6 +19,7 @@ import moduleRouter from "./src/routes/modules.Routes.js";
 import quizRouter from "./src/routes/quize.Routes.js";
 import assignmentRouter from "./src/routes/assignment.Routes.js";
 import submissionRouter from "./src/routes/submissions.Routes.js";
+import LessonCompleterouter from "./src/routes/lessonCompletion.Routes.js"
 
 const app = express();
 
@@ -164,6 +165,8 @@ app.use("/api", moduleRouter);
 app.use("/api", quizRouter);
 app.use("/api", assignmentRouter);
 app.use("/api", submissionRouter);
+app.use("/api", LessonCompleterouter);
+
 
 // 7. API documentation endpoint (optional)
 app.get("/api", (req, res) => {

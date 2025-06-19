@@ -121,3 +121,37 @@ export async function deleteQuiz(quiz_id) {
     throw err;
   }
 }
+
+
+export const calculateAndSaveAttempt = async (userId, lessonId, answers) => {
+  const quizzesResult = await query(
+    "SELECT id, correct_answer FROM quizzes WHERE lesson_id = $1",
+    [lessonId]
+  );
+
+  if (quizzesResult.rowCount === 0) {
+    throw new Error("No quizzes found for this lesson");
+  }
+
+  const quizzes = quizzesResult.rows;
+  let score = 0;
+  const correctAnswers = {};
+
+  quizzes.forEach((q) => {
+    correctAnswers[q.id] = q.correct_answer;
+    if (answers[q.id] && answers[q.id] === q.correct_answer) {
+      score += 10;
+    }
+  });
+
+  const totalScore = quizzes.length * 10;
+
+  await query(
+    `INSERT INTO quiz_attempts 
+     (user_id, lesson_id, answers, score, total_score, max_score, attempt_date)
+     VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+    [userId, lessonId, JSON.stringify(answers), score, totalScore, totalScore]
+  );
+
+  return { score, correctAnswers }; // ✅ Return both
+};
