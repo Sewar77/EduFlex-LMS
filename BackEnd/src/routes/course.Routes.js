@@ -13,6 +13,7 @@ import {
   getCoursesByCategoryController,
   getCoursesByStatusController,
   getRecommendedCourses,
+  fetchInstructorCourses
 } from "../controllers/courses.controller.js";
 
 const coursesRouter = express.Router();
@@ -41,6 +42,14 @@ coursesRouter.delete(
   deleteCourseController
 );
 
+
+coursesRouter.get(
+  "/instructor/my-courses",
+  authenticateJWT,
+  fetchInstructorCourses
+);
+
+
 // Search and filtered routes
 coursesRouter.get("/course/search", searchCoursesController); // Now uses query params
 
@@ -54,7 +63,6 @@ coursesRouter.get(
 );
 
 coursesRouter.get("/course/:id", authenticateJWT, getCourseByIdController);
-
 
 coursesRouter.get(
   "/course/category/:categoryId",

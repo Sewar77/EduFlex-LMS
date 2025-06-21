@@ -6,6 +6,7 @@ import {
   getCourseById,
   searchCourses,
   getLatestCourses,
+  getCoursesByInstructor,
 } from "../models/course.model.js";
 
 // Create course
@@ -47,54 +48,47 @@ export async function createCourseController(req, res) {
   }
 }
 
-
-
-
 // Update course
 export async function updateCourseController(req, res) {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id)) {
-    return res.status(400).json({ message: "Invalid course ID..." });
-  }
-
   try {
+    const instructorId = req.user.id;
+    const courseId = parseInt(req.params.id, 10);
+    if (!instructorId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
     const {
       title,
       description,
-      instructor_id,
       category_id,
       thumbnail_url,
       is_published,
       is_approved,
-    } = { ...req.body };
-
-    if (!title || !description || !instructor_id) {
-      return res.status(400).json({ message: "Required fields are missing." });
-    }
-
-    const courseInfo = {
-      id,
+    } = req.body;
+    const updatedCourse = await updateCourse({
+      id: courseId,
       title,
       description,
-      instructor_id,
+      instructor_id: instructorId,
       category_id,
       thumbnail_url,
       is_published,
       is_approved,
-    };
+    });
 
-    const updatedCourse = await updateCourse(courseInfo);
-    if (updatedCourse) {
-      return res.status(200).json(updatedCourse);
-    } else {
-      return res.status(404).json({ message: "Course not found." });
+    if (!updatedCourse) {
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Course not found or update failed.",
+        });
     }
+
+    res.json({ success: true, data: updatedCourse });
   } catch (err) {
     console.error("Error updating course:", err);
-    res.status(500).json({
-      message: "Failed to update course. Please try again later.",
-      error: err.message,
-    });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 }
 
@@ -108,9 +102,13 @@ export async function deleteCourseController(req, res) {
   try {
     const deleted = await deleteCourse(id);
     if (deleted) {
-      return res.status(200).json({ message: "Course deleted successfully." });
+      return res
+        .status(200)
+        .json({ success: true, message: "Course deleted successfully." });
     } else {
-      return res.status(404).json({ message: "Course not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found." });
     }
   } catch (err) {
     console.error("Error deleting course:", err);
@@ -120,15 +118,18 @@ export async function deleteCourseController(req, res) {
     });
   }
 }
+
+
+
 // Get all courses
 export async function getAllCoursesController(req, res) {
   try {
     const { is_published, is_approved } = req.query;
-    
+
     // If status filters are provided, use getCoursesByStatus
     if (is_published !== undefined || is_approved !== undefined) {
-      const published = is_published ? is_published === 'true' : undefined;
-      const approved = is_approved ? is_approved === 'true' : undefined;
+      const published = is_published ? is_published === "true" : undefined;
+      const approved = is_approved ? is_approved === "true" : undefined;
       return getCoursesByStatusController(req, res);
     }
 
@@ -136,14 +137,14 @@ export async function getAllCoursesController(req, res) {
     return res.status(200).json({
       success: true,
       count: courses.length,
-      data: courses
+      data: courses,
     });
   } catch (err) {
     console.error("Error fetching courses:", err);
     res.status(500).json({
       success: false,
       message: "Failed to fetch courses",
-      error: err.message
+      error: err.message,
     });
   }
 }
@@ -152,29 +153,29 @@ export async function getAllCoursesController(req, res) {
 export async function getCourseByIdController(req, res) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       success: false,
-      message: "Invalid course ID...." 
+      message: "Invalid course ID....",
     });
   }
   try {
     const course = await getCourseById(id);
     if (!course) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Course not found" 
+        message: "Course not found",
       });
     }
     return res.status(200).json({
       success: true,
-      data: course
+      data: course,
     });
   } catch (err) {
     console.error("Error fetching course:", err);
     res.status(500).json({
       success: false,
       message: "Failed to fetch course",
-      error: err.message
+      error: err.message,
     });
   }
 }
@@ -209,9 +210,9 @@ export async function searchCoursesController(req, res) {
 export async function getCoursesByCategoryController(req, res) {
   const categoryId = Number(req.params.categoryId);
   if (!Number.isInteger(categoryId)) {
-    return res.status(400).json({ 
+    return res.status(400).json({
       success: false,
-      message: "Invalid category ID" 
+      message: "Invalid category ID",
     });
   }
   try {
@@ -219,43 +220,41 @@ export async function getCoursesByCategoryController(req, res) {
     return res.status(200).json({
       success: true,
       count: courses.length,
-      data: courses
+      data: courses,
     });
   } catch (err) {
     console.error("Error fetching courses by category:", err);
     res.status(500).json({
       success: false,
       message: "Failed to fetch courses by category",
-      error: err.message
+      error: err.message,
     });
   }
 }
 
 export async function getCoursesByStatusController(req, res) {
   try {
-    const is_published = req.query.is_published === 'true';
-    const is_approved = req.query.is_approved === 'true';
+    const is_published = req.query.is_published === "true";
+    const is_approved = req.query.is_approved === "true";
     const courses = await getCoursesByStatus(is_published, is_approved);
     return res.status(200).json({
       success: true,
       count: courses.length,
       filters: {
         is_published,
-        is_approved
+        is_approved,
       },
-      data: courses
+      data: courses,
     });
   } catch (err) {
     console.error("Error fetching courses by status:", err);
     res.status(500).json({
       success: false,
       message: "Failed to fetch courses by status",
-      error: err.message
+      error: err.message,
     });
   }
 }
-
-
 
 export const getRecommendedCourses = async (req, res) => {
   try {
@@ -264,5 +263,22 @@ export const getRecommendedCourses = async (req, res) => {
   } catch (error) {
     console.error("Error in getRecommendedCourses:", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const fetchInstructorCourses = async (req, res) => {
+  const instructorId = parseInt(req.user?.id); // Assuming instructor is authenticated
+
+  if (!instructorId) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Instructor ID missing or invalid" });
+  }
+
+  try {
+    const courses = await getCoursesByInstructor(instructorId);
+    res.status(200).json({ success: true, data: courses });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

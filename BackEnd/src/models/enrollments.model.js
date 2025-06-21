@@ -127,9 +127,6 @@ export async function getCourseEnrollments(course_id) {
 }
 
 
-
-
-
 export async function updateEnrollmentProgress(user_id, course_id) {
   // Total lessons in this course
   const totalLessonsResult = await query(
@@ -168,4 +165,44 @@ export async function updateEnrollmentProgress(user_id, course_id) {
   );
 
   return progress;
+}
+
+
+
+
+
+// repositories/enrollments.repository.js
+
+export async function getEnrollmentProgress(courseId = null) {
+  try {
+    let sqlQuery = `
+      SELECT 
+        e.id,
+        e.user_id,
+        u.name AS user_name,
+        e.progress,
+        e.enrolled_at,
+        e.completed_at,
+        c.title AS course_title,
+        EXTRACT(DAY FROM (NOW() - e.enrolled_at)) AS days_enrolled
+      FROM enrollments e
+      JOIN users u ON e.user_id = u.id
+      JOIN courses c ON e.course_id = c.id
+    `;
+
+    const params = [];
+    
+    if (courseId) {
+      sqlQuery += ` WHERE e.course_id = $1`;
+      params.push(courseId);
+    }
+
+    sqlQuery += ` ORDER BY e.progress DESC`;
+
+    const result = await query(sqlQuery, params);
+    return result.rows;
+  } catch (err) {
+    console.error("Error fetching enrollment progress:", err);
+    throw err;
+  }
 }
