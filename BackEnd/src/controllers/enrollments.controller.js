@@ -5,6 +5,7 @@ import {
   isUserEnrolled,
   getAllEnrollments,
   getCourseEnrollments,
+  getEnrollmentProgress,
 } from "../models/enrollments.model.js";
 
 //user enroll course
@@ -141,6 +142,26 @@ export async function getCourseEnrollmentsController(req, res) {
     console.error("Can't get course enrollments:", err);
     res.status(500).json({
       message: "Failed to get course enrollments. Please try again later.",
+    });
+  }
+}
+
+
+
+
+export async function getEnrollmentProgressController(req, res) {
+  try {
+    const { course_id } = req.params; // Optional course filter
+    const data = await getEnrollmentProgress(course_id);
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
     });
   }
 }

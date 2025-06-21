@@ -49,4 +49,78 @@ submissionRouter.delete(
   deleteSubmissionController
 );
 
+
+
+
+
+// Get submissions for a specific assignment
+submissionRouter.get(
+  "/:assignmentId/submissions",
+  authenticateJWT,
+  async (req, res) => {
+    try {
+      const { assignmentId } = req.params;
+      const { role } = req.user;
+
+      if (role !== "instructor") {
+        return res.status(403).json({ error: "Instructor access required" });
+      }
+
+      const result = await query(
+        `SELECT s.id, s.user_id, u.name as student_name, 
+       s.submission_url, s.submitted_at, s.grade, s.feedback
+       FROM submissions s
+       JOIN users u ON s.user_id = u.id
+       WHERE s.assignment_id = $1`,
+        [assignmentId]
+      );
+
+      res.json({ submissions: result.rows });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// Grade a submission
+submissionRouter.put(
+  "/submissions/:submissionId/grade",
+  authenticateJWT,
+  async (req, res) => {
+    try {
+      const { submissionId } = req.params;
+      const { grade, feedback } = req.body;
+      const { role } = req.user;
+
+      if (role !== "instructor") {
+        return res.status(403).json({ error: "Instructor access required" });
+      }
+
+      await query(
+        `UPDATE submissions 
+       SET grade = $1, feedback = $2, updated_at = NOW()
+       WHERE id = $3 RETURNING *`,
+        [grade, feedback, submissionId]
+      );
+
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export default submissionRouter;

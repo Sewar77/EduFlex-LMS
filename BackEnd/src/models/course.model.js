@@ -34,7 +34,7 @@ export async function updateCourse(courseInfo) {
            description = $2,
            instructor_id = $3,
            category_id = $4,
-           thumbnail_url = $6,
+           thumbnail_url = $5,
            is_published = $6,
            is_approved = $7,
            updated_at = NOW()
@@ -45,10 +45,10 @@ export async function updateCourse(courseInfo) {
         courseInfo.description,
         courseInfo.instructor_id,
         courseInfo.category_id,
-        courseInfo.thumbnail_url,
-        courseInfo.is_published,
-        courseInfo.is_approved,
-        courseInfo.id,
+        courseInfo.thumbnail_url, // $5
+        courseInfo.is_published, // $6 (make sure this is boolean)
+        courseInfo.is_approved, // $7 (make sure this is boolean)
+        courseInfo.id, // $8
       ]
     );
     return result.rows[0] || null;
@@ -57,6 +57,7 @@ export async function updateCourse(courseInfo) {
     throw err;
   }
 }
+
 
 export async function deleteCourse(id) {
   try {
@@ -205,3 +206,33 @@ export const getLatestCourses = async (limit = 8) => {
     throw err;
   }
 };
+
+
+
+export async function getCoursesByInstructor(instructorId) {
+  try {
+    if (!Number.isInteger(instructorId)) {
+      throw new Error("Invalid Instructor ID");
+    }
+
+    const result = await query(
+      `
+      SELECT 
+        c.*,
+        u.name AS instructor_name,
+        cat.name AS category_name
+      FROM courses c
+      LEFT JOIN users u ON c.instructor_id = u.id
+      LEFT JOIN categories cat ON c.category_id = cat.id
+      WHERE c.instructor_id = $1
+      ORDER BY c.created_at DESC
+      `,
+      [instructorId]
+    );
+
+    return result.rows;
+  } catch (err) {
+    console.error("Error fetching instructor's courses:", err);
+    throw err;
+  }
+}
