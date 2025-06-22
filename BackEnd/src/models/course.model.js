@@ -58,7 +58,6 @@ export async function updateCourse(courseInfo) {
   }
 }
 
-
 export async function deleteCourse(id) {
   try {
     if (!Number.isInteger(id)) {
@@ -103,14 +102,16 @@ export async function getCourseById(id) {
 
     const result = await query(
       `
-      SELECT 
-        c.*,
-        u.name as instructor_name,
-        cat.name as category_name
-      FROM courses c
-      LEFT JOIN users u ON c.instructor_id = u.id
-      LEFT JOIN categories cat ON c.category_id = cat.id
-      WHERE c.id = $1
+    SELECT 
+  c.*,
+  u.name AS instructor_name,
+  u.avatar AS instructor_avatar,
+  cat.name AS category_name
+FROM courses c
+LEFT JOIN users u ON c.instructor_id = u.id
+LEFT JOIN categories cat ON c.category_id = cat.id
+WHERE c.id = $1
+
     `,
       [id]
     );
@@ -142,7 +143,6 @@ export async function searchCourses(keyword) {
     throw err;
   }
 }
-
 
 export async function getCoursesByCategory(categoryId) {
   try {
@@ -206,8 +206,6 @@ export const getLatestCourses = async (limit = 8) => {
     throw err;
   }
 };
-
-
 
 export async function getCoursesByInstructor(instructorId) {
   try {
