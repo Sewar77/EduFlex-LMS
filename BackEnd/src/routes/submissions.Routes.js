@@ -2,6 +2,7 @@ import express from "express";
 import { authenticateJWT } from "../middleware/authMiddleware.js";
 import { validateBody } from "../middleware/validateBody.js";
 import { submissionSchema } from "../validation/submissions.Schema.js";
+import { query } from "../config/db.js";
 import {
   createSubmissionController,
   getSubmissionByIdController,
@@ -33,6 +34,15 @@ submissionRouter.get(
   authenticateJWT,
   getAllSubmissionsForAssignmentController
 );
+submissionRouter.patch("/submissions/:id/grade", async (req, res) => {
+  const { id } = req.params;
+  const { grade } = req.body;
+  await query("UPDATE submissions SET grade = $1 WHERE id = $2", [
+    grade,
+    id,
+  ]);
+  res.json({ success: true, grade });
+});
 
 // Update submission (grade/feedback)
 submissionRouter.put(

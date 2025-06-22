@@ -112,9 +112,12 @@ export async function getCourseEnrollments(course_id) {
   try {
     if (Number.isInteger(course_id)) {
       const allEnrollments = await query(
-        `select users.* from users
-      join enrollments on enrollments.user_id = users.id
-      where enrollments.course_id = $1 `,
+        `SELECT e.id, e.course_id, u.name AS student_name, u.email AS student_email, e.enrolled_at, e.progress
+    FROM enrollments e
+    JOIN users u ON e.user_id = u.id
+    WHERE e.course_id = $1
+    ORDER BY e.enrolled_at DESC
+`,
         [course_id]
       );
       return allEnrollments.rows;
