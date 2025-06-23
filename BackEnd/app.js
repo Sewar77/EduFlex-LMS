@@ -20,7 +20,8 @@ import quizRouter from "./src/routes/quize.Routes.js";
 import assignmentRouter from "./src/routes/assignment.Routes.js";
 import submissionRouter from "./src/routes/submissions.Routes.js";
 import LessonCompleterouter from "./src/routes/lessonCompletion.Routes.js"
-
+import adminrouter from "./src/routes/adminCourseRoutes.js";
+import adminReportsRouter from "./src/routes/adminCourseRoutes.js"
 const app = express();
 
 // Check if we're in development mode
@@ -166,6 +167,8 @@ app.use("/api", quizRouter);
 app.use("/api", assignmentRouter);
 app.use("/api", submissionRouter);
 app.use("/api", LessonCompleterouter);
+app.use("/api", adminrouter);
+app.use("/api/admin/reports", adminReportsRouter);
 
 
 // 7. API documentation endpoint (optional)

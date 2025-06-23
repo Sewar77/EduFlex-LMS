@@ -55,6 +55,30 @@ export async function updateUserController(req, res) {
   }
 }
 
+
+import { query } from "../config/db.js";
+export async function updateUserRoleController(req, res) {
+  const id = Number(req.params.id);
+  const { role } = req.body;
+  if (!["student", "instructor", "admin"].includes(role)) {
+    return res.status(400).json({ message: "Invalid role" });
+  }
+  try {
+    const result = await query(
+      `UPDATE users SET role = $1 WHERE id = $2 RETURNING *`,
+      [role, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.status(200).json({ message: "Role updated successfully" });
+  } catch (err) {
+    console.error("Error updating role:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
 //3- delete user
 export async function deleteUserController(req, res) {
   const id = Number(req.params.id);
