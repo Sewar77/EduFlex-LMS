@@ -123,23 +123,46 @@ WHERE c.id = $1
   }
 }
 
-export async function searchCourses(keyword) {
+// Get courses by status
+export async function getCoursesByStatus(isPublished, isApproved) {
   try {
     const result = await query(
-      `SELECT 
-         c.*,
-         u.name as instructor_name,
-         cat.name as category_name
-       FROM courses c
-       LEFT JOIN users u ON c.instructor_id = u.id
-       LEFT JOIN categories cat ON c.category_id = cat.id
-       WHERE LOWER(c.title) LIKE $1
-       ORDER BY c.created_at DESC`,
-      [`%${keyword.toLowerCase()}%`]
+      `SELECT * FROM courses 
+       WHERE is_published = $1 AND is_approved = $2
+       ORDER BY created_at DESC`,
+      [isPublished, isApproved]
     );
     return result.rows;
   } catch (err) {
-    console.error("Error searching courses:", err);
+    console.error("Error fetching courses by status:", err);
+    throw err;
+  }
+}
+
+export async function getCoursesByInstructor(instructorId) {
+  try {
+    if (!Number.isInteger(instructorId)) {
+      throw new Error("Invalid Instructor ID");
+    }
+
+    const result = await query(
+      `
+      SELECT 
+        c.*,
+        u.name AS instructor_name,
+        cat.name AS category_name
+      FROM courses c
+      LEFT JOIN users u ON c.instructor_id = u.id
+      LEFT JOIN categories cat ON c.category_id = cat.id
+      WHERE c.instructor_id = $1
+      ORDER BY c.created_at DESC
+      `,
+      [instructorId]
+    );
+
+    return result.rows;
+  } catch (err) {
+    console.error("Error fetching instructor's courses:", err);
     throw err;
   }
 }
@@ -170,21 +193,28 @@ export async function getCoursesByCategory(categoryId) {
   }
 }
 
-// Get courses by status
-export async function getCoursesByStatus(isPublished, isApproved) {
+
+export async function searchCourses(keyword) {
   try {
     const result = await query(
-      `SELECT * FROM courses 
-       WHERE is_published = $1 AND is_approved = $2
-       ORDER BY created_at DESC`,
-      [isPublished, isApproved]
+      `SELECT 
+         c.*,
+         u.name as instructor_name,
+         cat.name as category_name
+       FROM courses c
+       LEFT JOIN users u ON c.instructor_id = u.id
+       LEFT JOIN categories cat ON c.category_id = cat.id
+       WHERE LOWER(c.title) LIKE $1
+       ORDER BY c.created_at DESC`,
+      [`%${keyword.toLowerCase()}%`]
     );
     return result.rows;
   } catch (err) {
-    console.error("Error fetching courses by status:", err);
+    console.error("Error searching courses:", err);
     throw err;
   }
 }
+
 
 export const getLatestCourses = async (limit = 8) => {
   try {
@@ -207,30 +237,20 @@ export const getLatestCourses = async (limit = 8) => {
   }
 };
 
-export async function getCoursesByInstructor(instructorId) {
+
+
+export async function getPendingCourses() {
   try {
-    if (!Number.isInteger(instructorId)) {
-      throw new Error("Invalid Instructor ID");
-    }
-
-    const result = await query(
-      `
-      SELECT 
-        c.*,
-        u.name AS instructor_name,
-        cat.name AS category_name
+    const result = await query(`
+      SELECT c.id, c.title, u.name AS instructor_name, cat.name AS category_name
       FROM courses c
-      LEFT JOIN users u ON c.instructor_id = u.id
-      LEFT JOIN categories cat ON c.category_id = cat.id
-      WHERE c.instructor_id = $1
-      ORDER BY c.created_at DESC
-      `,
-      [instructorId]
-    );
-
+      JOIN users u ON u.id = c.instructor_id
+      JOIN categories cat ON cat.id = c.category_id
+      WHERE c.is_approved = false
+    `);
     return result.rows;
-  } catch (err) {
-    console.error("Error fetching instructor's courses:", err);
-    throw err;
+  } catch (error) {
+    console.error("Error in getPendingCourses:", error);
+    throw error; // let controller handle the error and response
   }
 }
