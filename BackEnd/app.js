@@ -19,9 +19,9 @@ import moduleRouter from "./src/routes/modules.Routes.js";
 import quizRouter from "./src/routes/quize.Routes.js";
 import assignmentRouter from "./src/routes/assignment.Routes.js";
 import submissionRouter from "./src/routes/submissions.Routes.js";
-import LessonCompleterouter from "./src/routes/lessonCompletion.Routes.js"
+import LessonCompleterouter from "./src/routes/lessonCompletion.Routes.js";
 import adminrouter from "./src/routes/adminCourseRoutes.js";
-import adminReportsRouter from "./src/routes/adminCourseRoutes.js"
+import adminReportsRouter from "./src/routes/adminCourseRoutes.js";
 const app = express();
 
 // Check if we're in development mode
@@ -51,7 +51,7 @@ app.use(
       },
     },
     crossOriginEmbedderPolicy: false, // Allow Google OAuth
-  })
+  }),
 );
 
 // FIXED: Simplified CORS configuration for localhost development
@@ -74,7 +74,7 @@ app.use(
     preflightContinue: false,
     maxAge: 3600000,
     optionsSuccessStatus: 204,
-  })
+  }),
 );
 
 // Rate limiting with conditional application (most reliable approach)
@@ -85,7 +85,7 @@ const generalLimiter = rateLimit({
     false,
     "Too many requests",
     null,
-    "Rate limit exceeded"
+    "Rate limit exceeded",
   ),
   standardHeaders: true,
   legacyHeaders: false,
@@ -98,7 +98,7 @@ const authLimiter = rateLimit({
     false,
     "Too many authentication attempts",
     null,
-    "Please try again later"
+    "Please try again later",
   ),
   standardHeaders: true,
   legacyHeaders: false,
@@ -170,7 +170,6 @@ app.use("/api", LessonCompleterouter);
 app.use("/api", adminrouter);
 app.use("/api/admin/reports", adminReportsRouter);
 
-
 // 7. API documentation endpoint (optional)
 app.get("/api", (req, res) => {
   res.json({
@@ -192,9 +191,6 @@ app.get("/api", (req, res) => {
     },
   });
 });
-
-
-
 
 // 8. Error handling middleware (must be last)
 app.use(notFound);

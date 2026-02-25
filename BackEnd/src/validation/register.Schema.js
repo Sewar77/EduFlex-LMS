@@ -21,8 +21,8 @@ export const registerSchema = Joi.object({
   password: Joi.string()
     .pattern(
       new RegExp(
-        "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$"
-      )
+        "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$",
+      ),
     )
     .required()
     .messages({
